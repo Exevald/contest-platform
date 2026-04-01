@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
@@ -36,6 +38,16 @@ type Task struct {
 type SendFileResponse struct {
 	SubmissionID string `json:"submission_id,omitempty"`
 	Error        string `json:"error,omitempty"`
+}
+
+type SubmissionStatus struct {
+	SubmissionID string `json:"submissionId"`
+	ProblemID    string `json:"problemId"`
+	Language     string `json:"language"`
+	Verdict      string `json:"verdict"`
+	CreatedAt    string `json:"createdAt"`
+	TestsPassed  int    `json:"testsPassed"`
+	TestsTotal   int    `json:"testsTotal"`
 }
 
 func NewApp() *App {
@@ -124,6 +136,40 @@ func (a *App) SendFile(id string, language string, text string) (SendFileRespons
 	}, nil
 }
 
+func (a *App) GetLatestSubmission(id string) (*SubmissionStatus, error) {
+	if a.initErr != nil {
+		return nil, a.initErr
+	}
+
+	submission, err := a.container.SubmissionRepository().FindLatest(domainmodel.ProblemID(id))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("load latest submission for %s: %w", id, err)
+	}
+
+	status := makeSubmissionStatus(submission)
+	return &status, nil
+}
+
+func (a *App) GetSubmissionStatus(id string) (*SubmissionStatus, error) {
+	if a.initErr != nil {
+		return nil, a.initErr
+	}
+
+	submission, err := a.container.SubmissionRepository().Find(domainmodel.SubmissionID(id))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("load submission %s: %w", id, err)
+	}
+
+	status := makeSubmissionStatus(submission)
+	return &status, nil
+}
+
 func (a *App) findProblem(id string) (domainmodel.Problem, error) {
 	if a.initErr != nil {
 		return nil, a.initErr
@@ -144,4 +190,23 @@ func normalizeLanguage(language string) string {
 	}
 
 	return language
+}
+
+func makeSubmissionStatus(submission domainmodel.Submission) SubmissionStatus {
+	testsPassed := 0
+	for _, result := range submission.TestResults() {
+		if result.Verdict == domainmodel.VerdictOK {
+			testsPassed++
+		}
+	}
+
+	return SubmissionStatus{
+		SubmissionID: string(submission.ID()),
+		ProblemID:    string(submission.ProblemID()),
+		Language:     string(submission.Language()),
+		Verdict:      string(submission.Verdict()),
+		CreatedAt:    submission.CreatedAt().Format(time.RFC3339),
+		TestsPassed:  testsPassed,
+		TestsTotal:   len(submission.TestResults()),
+	}
 }

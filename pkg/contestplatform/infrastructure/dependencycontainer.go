@@ -106,6 +106,10 @@ func (c *DependencyContainer) SubmissionService() appservice.SubmissionService {
 	return c.submissionService
 }
 
+func (c *DependencyContainer) SubmissionRepository() domainmodel.SubmissionRepository {
+	return c.submissionRepository
+}
+
 func resolveAppDataDir(appID string) (string, error) {
 	root, err := os.UserConfigDir()
 	if err != nil {

@@ -6,6 +6,18 @@ import {joinStyles} from '../../common/joinStyles'
 import {useModel} from '../../model/context'
 import styles from './SidePanel.module.css'
 
+const verdictLabelMap: Record<string, string> = {
+	CE: 'Compilation Error',
+	MLE: 'Memory Limit',
+	OK: 'Accepted',
+	PENDING: 'Pending',
+	RE: 'Runtime Error',
+	RUNNING: 'Running',
+	SE: 'System Error',
+	TLE: 'Time Limit',
+	WA: 'Wrong Answer',
+}
+
 const SidePanel = reatomComponent(({className}: ClassNameProps) => {
 	const {
 		selectedFile,
@@ -16,7 +28,19 @@ const SidePanel = reatomComponent(({className}: ClassNameProps) => {
 		isSubmitDisabled,
 		languagesAtom,
 		titleAtom,
+		submitErrorAtom,
+		submitResultAtom,
+		isSubmittingAtom,
+		latestSubmissionAtom,
 	} = useModel().sidePanel
+
+	const latestSubmission = latestSubmissionAtom.ready()
+		? latestSubmissionAtom.data()
+		: null
+
+	const verdictClassName = latestSubmission
+		? styles[`verdict${latestSubmission.verdict}` as keyof typeof styles] ?? styles.verdictDefault
+		: styles.verdictDefault
 
 	const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0] || null
@@ -74,8 +98,43 @@ const SidePanel = reatomComponent(({className}: ClassNameProps) => {
 				onClick={handleSubmit}
 				disabled={isSubmitDisabled()}
 			>
-					Отправить
+				{isSubmittingAtom() ? 'Отправка...' : 'Отправить'}
 			</button>
+			{submitErrorAtom() ? (
+				<div className={styles.fileName}>{submitErrorAtom()}</div>
+			) : null}
+			{submitResultAtom() ? (
+				<div className={styles.fileName}>Submission: {submitResultAtom()}</div>
+			) : null}
+			<div className={styles.statusCard}>
+				<div className={styles.statusTitle}>Последняя посылка</div>
+				{latestSubmission ? (
+					<>
+						<div className={styles.statusRow}>
+							<span className={styles.statusLabel}>ID</span>
+							<span className={styles.statusValue}>{latestSubmission.submissionId}</span>
+						</div>
+						<div className={styles.statusRow}>
+							<span className={styles.statusLabel}>Вердикт</span>
+							<span className={joinStyles(styles.verdictBadge, verdictClassName)}>
+								{verdictLabelMap[latestSubmission.verdict] ?? latestSubmission.verdict}
+							</span>
+						</div>
+						<div className={styles.statusRow}>
+							<span className={styles.statusLabel}>Тесты</span>
+							<span className={styles.statusValue}>
+								{latestSubmission.testsPassed}/{latestSubmission.testsTotal}
+							</span>
+						</div>
+						<div className={styles.statusRow}>
+							<span className={styles.statusLabel}>Язык</span>
+							<span className={styles.statusValue}>{latestSubmission.language}</span>
+						</div>
+					</>
+				) : (
+					<div className={styles.statusEmpty}>Ещё не было посылок</div>
+				)}
+			</div>
 		</div>
 	)
 })

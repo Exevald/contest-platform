@@ -8,12 +8,19 @@ type DefPlatformModel = {
 }
 
 function defPlatformModel(args: DefPlatformModel) {
+	const workspace = defWorkspaceModel({
+		tabs: args.startupData.tasks,
+		api: args.api,
+	})
+
 	return {
-		sidePanel: defSidePanelModel(args.startupData),
-		workspace: defWorkspaceModel({
-			tabs: args.startupData.tasks,
+		sidePanel: defSidePanelModel({
+			title: args.startupData.title,
+			languages: args.startupData.languages,
 			api: args.api,
+			getSelectedTaskId: () => workspace.selectedTaskIdAtom(),
 		}),
+		workspace,
 	}
 }
 

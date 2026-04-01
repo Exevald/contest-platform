@@ -41,23 +41,39 @@ func (l *linuxSandbox) Prepare(ctx context.Context, lang domainmodel.Language, s
 		return "", "", err
 	}
 
-	exePath := filepath.Join(tmpDir, cfg.ExecutableName())
 	if cfg.IsCompiled() {
-		command, args := cfg.CompileCommand()
-		cmd := exec.CommandContext(ctx, command, args...)
+		command, err := cfg.CompileCommand(tmpDir)
+		if err != nil {
+			return tmpDir, "", err
+		}
+
+		cmd := exec.CommandContext(ctx, command.Path, command.Args...)
 		cmd.Dir = tmpDir
+		cmd.Env = command.Env
 		output, runErr := cmd.CombinedOutput()
 		if runErr != nil {
 			return tmpDir, "", fmt.Errorf("compilation error: %s", string(output))
 		}
-		return tmpDir, exePath, nil
+
+		runCommand, err := cfg.RunCommand(tmpDir)
+		if err != nil {
+			return tmpDir, "", err
+		}
+
+		return tmpDir, runCommand.Path, nil
 	}
 
-	interpreter, args := cfg.RunCommand()
+	runCommand, err := cfg.RunCommand(tmpDir)
+	if err != nil {
+		return tmpDir, "", err
+	}
+
 	launcherPath := filepath.Join(tmpDir, "run.sh")
-	script := fmt.Sprintf("#!/bin/sh\nexec \"%s\"", interpreter)
-	for _, arg := range args {
-		script += fmt.Sprintf(" \"%s\"", arg)
+	script := fmt.Sprintf("#!/bin/sh\nexec \"%s\"",
+		strings.ReplaceAll(runCommand.Path, "\"", "\\\""),
+	)
+	for _, arg := range runCommand.Args {
+		script += fmt.Sprintf(" \"%s\"", strings.ReplaceAll(arg, "\"", "\\\""))
 	}
 	script += "\n"
 
@@ -92,6 +108,7 @@ func (l *linuxSandbox) Execute(
 	cmd := exec.CommandContext(ctx, runCommand, runArgs...)
 	cmd.Dir = dir
 	cmd.Stdin = strings.NewReader(input)
+	cmd.Env = appmodel.ToolchainEnv(dir)
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout

@@ -5,6 +5,9 @@
 	padding: 16px;
 	box-sizing: border-box;
 	justify-content: center;
+	background:
+		linear-gradient(180deg, rgba(247, 248, 249, 1) 0%, rgba(239, 242, 244, 1) 100%);
+	color: var(--colors-text-primary);
 }
 
 .title {
@@ -26,6 +29,7 @@
 	height: 42px;
 	border: 1px dashed var(--colors-dividers-default);
 	border-radius: 8px;
+	background-color: var(--colors-surface-default);
 	cursor: pointer;
 	transition: background-color 0.2s;
 }
@@ -45,7 +49,7 @@
 	height: 42px;
 	border: 1px solid var(--colors-dividers-default);
 	border-radius: 8px;
-	background-color: transparent;
+	background-color: var(--colors-surface-default);
 	color: inherit;
 	cursor: pointer;
 }
@@ -73,4 +77,83 @@
 .submitButton:disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
+}
+
+.statusCard {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 14px;
+	border: 1px solid var(--colors-dividers-default);
+	border-radius: 12px;
+	background-color: var(--colors-surface-default);
+	box-shadow: 0 8px 24px rgba(18, 24, 32, 0.06);
+}
+
+.statusTitle {
+	font: 700 var(--text-text-large);
+	color: var(--colors-text-primary);
+}
+
+.statusRow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.statusLabel {
+	color: var(--colors-text-secondary);
+	font: 400 var(--text-text-medium);
+}
+
+.statusValue {
+	max-width: 140px;
+	text-align: right;
+	font: 600 var(--text-text-medium);
+	color: var(--colors-text-primary);
+	word-break: break-word;
+}
+
+.statusEmpty {
+	font: 400 var(--text-text-medium);
+	color: var(--colors-text-secondary);
+}
+
+.verdictBadge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 28px;
+	padding: 4px 10px;
+	border-radius: 999px;
+	font: 700 12px/16px var(--font-family);
+	letter-spacing: 0.02em;
+}
+
+.verdictOK {
+	background-color: var(--colors-verdict-ok-bg);
+	color: var(--colors-verdict-ok-text);
+}
+
+.verdictWA,
+.verdictRE,
+.verdictCE,
+.verdictSE {
+	background-color: var(--colors-verdict-error-bg);
+	color: var(--colors-verdict-error-text);
+}
+
+.verdictTLE,
+.verdictMLE {
+	background-color: var(--colors-verdict-warning-bg);
+	color: var(--colors-verdict-warning-text);
+}
+
+.verdictPENDING,
+.verdictRUNNING,
+.verdictCOMPILING,
+.verdictDefault {
+	background-color: var(--colors-verdict-neutral-bg);
+	color: var(--colors-verdict-neutral-text);
 }

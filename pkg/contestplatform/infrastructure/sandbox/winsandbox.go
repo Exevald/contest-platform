@@ -41,22 +41,36 @@ func (w *winSandbox) Prepare(ctx context.Context, lang domainmodel.Language, sou
 		return "", "", err
 	}
 
-	exePath := filepath.Join(tmpDir, cfg.ExecutableName())
 	if cfg.IsCompiled() {
-		command, args := cfg.CompileCommand()
-		cmd := exec.CommandContext(ctx, command, args...)
+		command, err := cfg.CompileCommand(tmpDir)
+		if err != nil {
+			return tmpDir, "", err
+		}
+
+		cmd := exec.CommandContext(ctx, command.Path, command.Args...)
 		cmd.Dir = tmpDir
+		cmd.Env = command.Env
 		out, err2 := cmd.CombinedOutput()
 		if err2 != nil {
 			return tmpDir, "", fmt.Errorf("compilation error: %s", string(out))
 		}
-		return tmpDir, exePath, nil
+
+		runCommand, err := cfg.RunCommand(tmpDir)
+		if err != nil {
+			return tmpDir, "", err
+		}
+
+		return tmpDir, runCommand.Path, nil
 	}
 
-	interpreter, args := cfg.RunCommand()
+	runCommand, err := cfg.RunCommand(tmpDir)
+	if err != nil {
+		return tmpDir, "", err
+	}
+
 	launcherPath := filepath.Join(tmpDir, "run.cmd")
-	commandLine := "@" + "echo off\r\n\"" + interpreter + "\""
-	for _, arg := range args {
+	commandLine := "@echo off\r\n\"" + runCommand.Path + "\""
+	for _, arg := range runCommand.Args {
 		commandLine += " \"" + arg + "\""
 	}
 	commandLine += "\r\n"
@@ -82,6 +96,7 @@ func (w *winSandbox) Execute(ctx context.Context, dir, exe string, input string,
 	cmd := exec.CommandContext(ctx, "cmd", "/C", cfgExe)
 	cmd.Dir = dir
 	cmd.Stdin = strings.NewReader(input)
+	cmd.Env = appmodel.ToolchainEnv(dir)
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout

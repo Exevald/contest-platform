@@ -64,6 +64,30 @@ export namespace main {
 		    return a;
 		}
 	}
+	export class SubmissionStatus {
+	    submissionId: string;
+	    problemId: string;
+	    language: string;
+	    verdict: string;
+	    createdAt: string;
+	    testsPassed: number;
+	    testsTotal: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new SubmissionStatus(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.submissionId = source["submissionId"];
+	        this.problemId = source["problemId"];
+	        this.language = source["language"];
+	        this.verdict = source["verdict"];
+	        this.createdAt = source["createdAt"];
+	        this.testsPassed = source["testsPassed"];
+	        this.testsTotal = source["testsTotal"];
+	    }
+	}
 
 }
 

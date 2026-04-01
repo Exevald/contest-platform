@@ -23,10 +23,26 @@ type ResetTaskArgs = {
 	id: string
 }
 
+type SubmissionArgs = {
+	id: string
+}
+
+type SubmissionStatus = {
+	submissionId: string,
+	problemId: string,
+	language: string,
+	verdict: string,
+	createdAt: string,
+	testsPassed: number,
+	testsTotal: number,
+}
+
 type PlatformApi = StartupApi<StartupData> & {
 	getData: <T>(data: GetDataArgs) => Promise<T>,
 	sendFile: <T>(data: SendFileArgs) => Promise<T>,
 	resetTask: <T>(data: ResetTaskArgs) => Promise<T>,
+	getLatestSubmission: <T>(data: SubmissionArgs) => Promise<T>,
+	getSubmissionStatus: <T>(data: SubmissionArgs) => Promise<T>,
 }
 
 export {
@@ -35,4 +51,6 @@ export {
 	GetDataArgs,
 	SendFileArgs,
 	ResetTaskArgs,
+	SubmissionArgs,
+	SubmissionStatus,
 }

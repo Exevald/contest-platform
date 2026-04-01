@@ -12,6 +12,8 @@
 	--colors-dividers-default: rgba(50, 53, 55, 0.12);
 	--color-action-neutral-default: rgba(50, 53, 55, 1);
 	--colors-text-white: rgba(255, 255, 255, 1);
+	--colors-text-primary: rgba(29, 33, 38, 1);
+	--colors-text-secondary: rgba(93, 102, 112, 1);
 
 	--font-family: 'Segoe UI';
 	--text-text-medium: 14px/20px var(--font-family);
@@ -24,6 +26,14 @@
 	--colors-surface-pressed: rgba(50, 53, 55, 0.16);
 
 	--colors-icon-default: rgba(50, 53, 55, 1);
+	--colors-verdict-ok-bg: rgba(222, 247, 232, 1);
+	--colors-verdict-ok-text: rgba(27, 94, 32, 1);
+	--colors-verdict-error-bg: rgba(253, 232, 232, 1);
+	--colors-verdict-error-text: rgba(185, 28, 28, 1);
+	--colors-verdict-warning-bg: rgba(255, 244, 214, 1);
+	--colors-verdict-warning-text: rgba(146, 64, 14, 1);
+	--colors-verdict-neutral-bg: rgba(232, 236, 241, 1);
+	--colors-verdict-neutral-text: rgba(55, 65, 81, 1);
 }
 
 html {
@@ -41,6 +51,9 @@ html {
 body {
 	margin-block: 0;
 	margin-inline: 0;
+	color: var(--colors-text-primary);
+	background-color: var(--colors-surface-default);
+	font-family: "Roboto sans-serif";
 }
 
 /**

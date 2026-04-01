@@ -19,6 +19,7 @@ type TestResult struct {
 type SubmissionRepository interface {
 	NextID() SubmissionID
 	Find(id SubmissionID) (Submission, error)
+	FindLatest(problemID ProblemID) (Submission, error)
 	Store(s Submission) error
 }
 

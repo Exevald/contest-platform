@@ -9,19 +9,19 @@ import (
 	domainmodel "contest-platform/pkg/contestplatform/domain/model"
 )
 
-type SubmissionRepository struct {
+func NewSubmissionRepository(db *sql.DB) domainmodel.SubmissionRepository {
+	return &submissionRepository{db: db}
+}
+
+type submissionRepository struct {
 	db *sql.DB
 }
 
-func NewSubmissionRepository(db *sql.DB) *SubmissionRepository {
-	return &SubmissionRepository{db: db}
-}
-
-func (repo *SubmissionRepository) NextID() domainmodel.SubmissionID {
+func (repo *submissionRepository) NextID() domainmodel.SubmissionID {
 	return domainmodel.SubmissionID(newID("submission"))
 }
 
-func (repo *SubmissionRepository) Find(id domainmodel.SubmissionID) (domainmodel.Submission, error) {
+func (repo *submissionRepository) Find(id domainmodel.SubmissionID) (domainmodel.Submission, error) {
 	row := repo.db.QueryRow(`
 		SELECT id, problem_id, language, source_code, verdict, test_results_json, created_at_unix
 		FROM submissions
@@ -59,7 +59,47 @@ func (repo *SubmissionRepository) Find(id domainmodel.SubmissionID) (domainmodel
 	}), nil
 }
 
-func (repo *SubmissionRepository) Store(submission domainmodel.Submission) error {
+func (repo *submissionRepository) FindLatest(problemID domainmodel.ProblemID) (domainmodel.Submission, error) {
+	row := repo.db.QueryRow(`
+		SELECT id, problem_id, language, source_code, verdict, test_results_json, created_at_unix
+		FROM submissions
+		WHERE problem_id = ?
+		ORDER BY created_at_unix DESC, id DESC
+		LIMIT 1
+	`, string(problemID))
+
+	var (
+		submissionID  string
+		foundProblem  string
+		language      string
+		sourceCode    string
+		verdict       string
+		resultsJSON   string
+		createdAtUnix int64
+	)
+	if err := row.Scan(&submissionID, &foundProblem, &language, &sourceCode, &verdict, &resultsJSON, &createdAtUnix); err != nil {
+		return nil, fmt.Errorf("find latest submission: %w", err)
+	}
+
+	var testResults []domainmodel.TestResult
+	if resultsJSON != "" {
+		if err := json.Unmarshal([]byte(resultsJSON), &testResults); err != nil {
+			return nil, fmt.Errorf("unmarshal latest submission results: %w", err)
+		}
+	}
+
+	return domainmodel.SubmissionFromSnapshot(domainmodel.SubmissionSnapshot{
+		ID:          domainmodel.SubmissionID(submissionID),
+		ProblemID:   domainmodel.ProblemID(foundProblem),
+		Language:    domainmodel.Language(language),
+		SourceCode:  sourceCode,
+		Verdict:     domainmodel.Verdict(verdict),
+		TestResults: testResults,
+		CreatedAt:   time.Unix(createdAtUnix, 0).UTC(),
+	}), nil
+}
+
+func (repo *submissionRepository) Store(submission domainmodel.Submission) error {
 	snapshot := domainmodel.SnapshotSubmission(submission)
 	resultsJSON, err := json.Marshal(snapshot.TestResults)
 	if err != nil {

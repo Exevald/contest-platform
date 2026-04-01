@@ -10,19 +10,19 @@ import (
 	domainmodel "contest-platform/pkg/contestplatform/domain/model"
 )
 
-type ProblemRepository struct {
+func NewProblemRepository(db *sql.DB) domainmodel.ProblemRepository {
+	return &problemRepository{db: db}
+}
+
+type problemRepository struct {
 	db *sql.DB
 }
 
-func NewProblemRepository(db *sql.DB) *ProblemRepository {
-	return &ProblemRepository{db: db}
-}
-
-func (repo *ProblemRepository) NextID() domainmodel.ProblemID {
+func (repo *problemRepository) NextID() domainmodel.ProblemID {
 	return domainmodel.ProblemID(newID("problem"))
 }
 
-func (repo *ProblemRepository) List() ([]domainmodel.Problem, error) {
+func (repo *problemRepository) List() ([]domainmodel.Problem, error) {
 	rows, err := repo.db.Query(`
 		SELECT id, title, description, time_limit_ns, memory_limit_bytes, test_cases_json
 		FROM problems
@@ -45,7 +45,7 @@ func (repo *ProblemRepository) List() ([]domainmodel.Problem, error) {
 	return problems, rows.Err()
 }
 
-func (repo *ProblemRepository) Find(id domainmodel.ProblemID) (domainmodel.Problem, error) {
+func (repo *problemRepository) Find(id domainmodel.ProblemID) (domainmodel.Problem, error) {
 	row := repo.db.QueryRow(`
 		SELECT id, title, description, time_limit_ns, memory_limit_bytes, test_cases_json
 		FROM problems
@@ -55,7 +55,7 @@ func (repo *ProblemRepository) Find(id domainmodel.ProblemID) (domainmodel.Probl
 	return scanProblem(row.Scan)
 }
 
-func (repo *ProblemRepository) Store(problem domainmodel.Problem) error {
+func (repo *problemRepository) Store(problem domainmodel.Problem) error {
 	snapshot := domainmodel.SnapshotProblem(problem)
 	testCasesJSON, err := json.Marshal(snapshot.TestCases)
 	if err != nil {

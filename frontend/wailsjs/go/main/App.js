@@ -6,8 +6,16 @@ export function GetData(arg1) {
   return window['go']['main']['App']['GetData'](arg1);
 }
 
+export function GetLatestSubmission(arg1) {
+  return window['go']['main']['App']['GetLatestSubmission'](arg1);
+}
+
 export function GetStartupData() {
   return window['go']['main']['App']['GetStartupData']();
+}
+
+export function GetSubmissionStatus(arg1) {
+  return window['go']['main']['App']['GetSubmissionStatus'](arg1);
 }
 
 export function ResetTask(arg1) {
