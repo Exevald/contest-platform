@@ -9,9 +9,9 @@ import styles from './SidePanel.module.css'
 const SidePanel = reatomComponent(({className}: ClassNameProps) => {
 	const {
 		selectedFile,
-		selectedLanguage,
+		selectedLanguageName,
 		setSelectedFile,
-		setSelectedLanguage,
+		setSelectedLanguageName,
 		handleSubmit,
 		isSubmitDisabled,
 		languagesAtom,
@@ -24,7 +24,7 @@ const SidePanel = reatomComponent(({className}: ClassNameProps) => {
 	}
 
 	const handleLanguageChange = (event: ChangeEvent<HTMLSelectElement>) => {
-		setSelectedLanguage(event.target.value)
+		setSelectedLanguageName(event.target.value)
 	}
 
 	return (
@@ -59,12 +59,12 @@ const SidePanel = reatomComponent(({className}: ClassNameProps) => {
 
 			<select
 				className={styles.select}
-				value={selectedLanguage()}
+				value={selectedLanguageName()}
 				onChange={handleLanguageChange}
 			>
 				{languagesAtom().map(lang => (
-					<option key={lang} value={lang}>
-						{lang}
+					<option key={lang.name} value={lang.name}>
+						{lang.name}
 					</option>
 				))}
 			</select>
