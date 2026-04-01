@@ -1,0 +1,8 @@
+.workspace {
+	display: flex;
+	flex-direction: column;
+}
+
+.tabs {
+	height: 50px;
+}

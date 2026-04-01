@@ -1,0 +1,25 @@
+.tabs {
+	display: flex;
+}
+
+.tab {
+	text-align: center;
+	display: flex;
+	flex: 1;
+	justify-content: center;
+	align-items: center;
+
+	transition: 0.15s background-color;
+	user-select: none;
+	background-color: var(--colors-surface-pressed);
+}
+
+.tab:hover:not(.selected) {
+	cursor: pointer;
+	background-color: var(--colors-surface-hovered);
+}
+
+.selected {
+	background-color: var(--colors-surface-default);
+}
+

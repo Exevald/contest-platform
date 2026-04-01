@@ -1,0 +1,76 @@
+.container {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 16px;
+	box-sizing: border-box;
+	justify-content: center;
+}
+
+.title {
+	font: var(--text-text-xlarge);
+	text-align: center;
+}
+
+.fileInput {
+	display: none;
+}
+
+.fileLabel {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+
+	box-sizing: border-box;
+	height: 42px;
+	border: 1px dashed var(--colors-dividers-default);
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.fileLabel:hover {
+	background-color: var(--colors-dividers-default);
+}
+
+.fileIcon {
+	width: 20px;
+	height: 20px;
+}
+
+.select {
+	width: 100%;
+	padding-left: 10px;
+	height: 42px;
+	border: 1px solid var(--colors-dividers-default);
+	border-radius: 8px;
+	background-color: transparent;
+	color: inherit;
+	cursor: pointer;
+}
+
+.select:focus {
+	outline: none;
+	border-color: currentColor;
+}
+
+.submitButton {
+	height: 42px;
+	border: none;
+	border-radius: 8px;
+	background-color: var(--color-action-neutral-default);
+	cursor: pointer;
+	transition: opacity 0.2s;
+	color: var(--colors-text-white);
+	font: 400 var(--text-text-large);
+}
+
+.submitButton:hover {
+	opacity: 0.8;
+}
+
+.submitButton:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
