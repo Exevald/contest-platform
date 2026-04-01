@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/wailsapp/wails/v2/pkg/runtime"
+
 	appmodel "contest-platform/pkg/contestplatform/app/model"
 	appservice "contest-platform/pkg/contestplatform/app/service"
 	domainmodel "contest-platform/pkg/contestplatform/domain/model"
 	"contest-platform/pkg/contestplatform/infrastructure"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 const applicationID = "contestplatform"
