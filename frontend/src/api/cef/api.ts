@@ -1,21 +1,43 @@
-import {createCefAdapter} from '../../common/cef/adapter'
 import type {
+	GetDataArgs,
 	PlatformApi,
+	ResetTaskArgs,
+	SendFileArgs,
 	StartupData,
 } from '../types'
 
-/**
- * Реализация CEF-адаптера для API генерации аудио.
- */
-const cefCalls = {
-	getStartupData: 'Platform_getStartupData',
+type WailsAppApi = {
+	GetStartupData: () => Promise<StartupData>,
+	GetData: (id: string) => Promise<string>,
+	SendFile: (id: string, language: string, text: string) => Promise<unknown>,
+	ResetTask: (id: string) => Promise<string>,
 }
 
-const adapter = createCefAdapter()
+const getBackend = (): WailsAppApi => {
+	const backend = (window as any)?.go?.main?.App
+
+	if (!backend) {
+		throw new Error('Wails backend is not available')
+	}
+
+	return backend as WailsAppApi
+}
 
 const api: PlatformApi = {
 	async getStartupData(): Promise<StartupData> {
-		return adapter.call(cefCalls.getStartupData, [])
+		return getBackend().GetStartupData()
+	},
+
+	async getData({id}: GetDataArgs): Promise<string> {
+		return getBackend().GetData(id)
+	},
+
+	async sendFile({id, language, text}: SendFileArgs): Promise<unknown> {
+		return getBackend().SendFile(id, language, text)
+	},
+
+	async resetTask({id}: ResetTaskArgs): Promise<string> {
+		return getBackend().ResetTask(id)
 	},
 }
 
