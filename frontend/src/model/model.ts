@@ -11,7 +11,7 @@ function defPlatformModel(args: DefPlatformModel) {
 	return {
 		sidePanel: defSidePanelModel(args.startupData),
 		workspace: defWorkspaceModel({
-			tabs: args.startupData.tabs,
+			tabs: args.startupData.tasks,
 			api: args.api,
 		}),
 	}

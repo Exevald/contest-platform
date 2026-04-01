@@ -2,10 +2,11 @@ import {
 	defAction, defAtom, defComputed,
 } from '../common/createModelProvider'
 import {PANIC, verify} from '../common/exception'
+import type {Language} from './types'
 
 type DefSidePanelModelArgs = {
 	title: string,
-	languages: string[],
+	languages: Language[],
 }
 
 function defSidePanelModel({title, languages}: DefSidePanelModelArgs) {
@@ -15,21 +16,25 @@ function defSidePanelModel({title, languages}: DefSidePanelModelArgs) {
 	const titleAtom = defAtom(title)
 
 	const selectedFile = defAtom<File | null>(null)
-	const selectedLanguage = defAtom(verify(languages[0]))
+	const selectedLanguageName = defAtom(verify(languages[0]).name)
+	const setSelectedLanguageName = defAction((language: string) => {
+		selectedLanguageName.set(language)
+	})
 
 	const languagesAtom = defAtom(languages)
 
 	const setSelectedFile = defAction((file: File | null) => {
 		selectedFile.set(file)
-	})
-
-	const setSelectedLanguage = defAction((language: string) => {
-		selectedLanguage.set(language)
+		languagesAtom().forEach(language => {
+			if (file?.name.endsWith(language.extension)) {
+				setSelectedLanguageName(language.name)
+			}
+		})
 	})
 
 	const handleSubmit = defAction(() => {
 		const file = selectedFile()
-		const language = selectedLanguage()
+		const language = selectedLanguageName()
 
 		if (file) {
 			console.log('Отправка файла:', {
@@ -44,9 +49,9 @@ function defSidePanelModel({title, languages}: DefSidePanelModelArgs) {
 	return {
 		titleAtom,
 		selectedFile,
-		selectedLanguage,
+		setSelectedLanguageName,
 		setSelectedFile,
-		setSelectedLanguage,
+		selectedLanguageName,
 		handleSubmit,
 		isSubmitDisabled,
 		languagesAtom,

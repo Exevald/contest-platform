@@ -1,12 +1,12 @@
 import type {
 	StartupApi,
 } from '../common/startApp/api/StartupApi'
-import type {Task} from '../model/types'
+import type {Language, Task} from '../model/types'
 
 type StartupData = {
 	title: string,
-	languages: string[],
-	tabs: Task[],
+	languages: Language[],
+	tasks: Task[],
 }
 
 type GetDataArgs = {

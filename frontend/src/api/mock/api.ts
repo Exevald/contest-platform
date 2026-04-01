@@ -9,8 +9,25 @@ const api: PlatformApi = {
 	async getStartupData(): Promise<StartupData> {
 		return {
 			title: 'Rocket Pizza',
-			languages: ['C++', 'Pascal', 'JavaScript', 'Python'],
-			tabs: [
+			languages: [
+				{
+					name: 'C++',
+					extension: 'cpp'
+				},
+				{
+					name: 'Pascal',
+					extension: 'pas'
+				},
+				{
+					name: 'JavaScript',
+					extension: 'js'
+				},
+				{
+					name: 'Python',
+					extension: 'py'
+				},
+			],
+			tasks: [
 				{
 					id: '1',
 					type: 'table',

@@ -4,8 +4,14 @@ type Task = {
 	label: string,
 }
 
+type Language = {
+	name: string,
+	extension: string,
+}
+
 type TabType = 'table'
 
 export type {
 	Task,
+	Language,
 }
