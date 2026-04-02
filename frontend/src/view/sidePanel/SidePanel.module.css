@@ -1,42 +1,42 @@
 .container {
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-	padding: 20px 16px;
-	box-sizing: border-box;
-	justify-content: flex-start;
-	background: linear-gradient(180deg, rgba(247, 248, 249, 1) 0%, rgba(239, 242, 244, 1) 100%);
-	color: var(--colors-text-primary);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 16px;
+    box-sizing: border-box;
+    justify-content: flex-start;
+    background: linear-gradient(180deg, rgba(247, 248, 249, 1) 0%, rgba(239, 242, 244, 1) 100%);
+    color: var(--colors-text-primary);
 }
 
 .title {
-	font: 700 var(--text-text-xlarge);
-	text-align: center;
+    font: 700 var(--text-text-xlarge);
+    text-align: center;
 }
 
 .participantCard {
-	padding: 14px;
-	border: 1px solid var(--colors-dividers-default);
-	border-radius: 14px;
-	background: rgba(255, 255, 255, 0.7);
+    padding: 14px;
+    border: 1px solid var(--colors-dividers-default);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.7);
 }
 
 .participantLabel {
-	margin-bottom: 6px;
-	font: 700 11px/16px var(--font-family);
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-	color: var(--colors-text-secondary);
+    margin-bottom: 6px;
+    font: 700 11px/16px var(--font-family);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--colors-text-secondary);
 }
 
 .participantValue {
-	font: 700 15px/22px "SFMono-Regular", Consolas, Menlo, monospace;
-	color: var(--colors-text-primary);
-	word-break: break-word;
+    font: 700 15px/22px "SFMono-Regular", Consolas, Menlo, monospace;
+    color: var(--colors-text-primary);
+    word-break: break-word;
 }
 
 .caption {
-	font: 400 var(--text-text-medium);
-	color: var(--colors-text-secondary);
-	text-align: center;
+    font: 400 var(--text-text-medium);
+    color: var(--colors-text-secondary);
+    text-align: center;
 }

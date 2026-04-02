@@ -10,63 +10,68 @@ import {useModel} from '../../model/context'
 import styles from './SidePanel.module.css'
 
 const SidePanel = reatomComponent(({className}: ClassNameProps) => {
-	const {
-		selectedFile,
-		selectedLanguageName,
-		setSelectedFile,
-		setSelectedLanguageName,
-		handleSubmit,
-		isSubmitDisabled,
-		languagesAtom,
-		titleAtom,
-		participantCodeAtom,
-		submitErrorAtom,
-		submitResultAtom,
-		isSubmittingAtom,
-	} = useModel().sidePanel
+    const {
+        selectedFile,
+        selectedLanguageName,
+        setSelectedFile,
+        setSelectedLanguageName,
+        handleSubmit,
+        isSubmitDisabled,
+        languagesAtom,
+        titleAtom,
+        participantCodeAtom,
+        isTimerExpiredAtom,
+        submitErrorAtom,
+        submitResultAtom,
+        isSubmittingAtom,
+    } = useModel().sidePanel
 
-	return (
-		<div className={joinStyles(className, styles.container)}>
-			<div className={styles.title}>{titleAtom()}</div>
-			<div className={styles.participantCard}>
-				<div className={styles.participantLabel}>Код участника</div>
-				<div className={styles.participantValue}>{participantCodeAtom()}</div>
-			</div>
+    return (
+        <div className={joinStyles(className, styles.container)}>
+            <div className={styles.title}>{titleAtom()}</div>
+            <div className={styles.participantCard}>
+                <div className={styles.participantLabel}>Код участника</div>
+                <div className={styles.participantValue}>{participantCodeAtom()}</div>
+            </div>
 
-			<FilePicker
-				id="file-input"
-				fileName={selectedFile() ? verify(selectedFile()).name : ''}
-				placeholder="Прикрепить файл"
-				onChange={setSelectedFile}
-			/>
+            <FilePicker
+                id="file-input"
+                fileName={selectedFile() ? verify(selectedFile()).name : ''}
+                placeholder="Прикрепить файл"
+                onChange={setSelectedFile}
+            />
 
-			<Select
-				value={selectedLanguageName()}
-				options={languagesAtom().map(lang => ({
-					value: lang.name,
-					label: lang.name,
-				}))}
-				onChange={event => setSelectedLanguageName(event.target.value)}
-			/>
+            <Select
+                value={selectedLanguageName()}
+                options={languagesAtom().map(lang => ({
+                    value: lang.name,
+                    label: lang.name,
+                }))}
+                onChange={event => setSelectedLanguageName(event.target.value)}
+            />
 
-			<Button
-				block
-				onClick={handleSubmit}
-				disabled={isSubmitDisabled()}
-			>
-				{isSubmittingAtom() ? 'Отправка...' : 'Отправить'}
-			</Button>
+            <Button
+                block
+                onClick={handleSubmit}
+                disabled={isSubmitDisabled()}
+            >
+                {isSubmittingAtom() ? 'Отправка...' : 'Отправить'}
+            </Button>
 
-			{submitErrorAtom() ? (
-				<Alert tone="error">{submitErrorAtom()}</Alert>
-			) : null}
-			{submitResultAtom() ? (
-				<Alert>Посылка: {submitResultAtom()}</Alert>
-			) : null}
-		</div>
-	)
+            {isTimerExpiredAtom() ? (
+                <Alert tone="error">Время вышло. Отправка решений недоступна.</Alert>
+            ) : null}
+
+            {submitErrorAtom() ? (
+                <Alert tone="error">{submitErrorAtom()}</Alert>
+            ) : null}
+            {submitResultAtom() ? (
+                <Alert>Посылка: {submitResultAtom()}</Alert>
+            ) : null}
+        </div>
+    )
 })
 
 export {
-	SidePanel,
+    SidePanel,
 }

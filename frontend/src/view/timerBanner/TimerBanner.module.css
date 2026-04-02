@@ -1,0 +1,54 @@
+.wrap {
+    position: absolute;
+    inset: auto 0 14px;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.timer,
+.timerExpired {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(10px);
+}
+
+.timer {
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.timerExpired {
+    background: rgba(253, 232, 232, 0.96);
+    border: 1px solid rgba(239, 68, 68, 0.18);
+}
+
+.label {
+    font: 700 11px/16px var(--font-family);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--colors-text-secondary);
+}
+
+.value {
+    font: 700 18px/22px "SFMono-Regular", Consolas, Menlo, monospace;
+    color: var(--colors-text-primary);
+}
+
+@media (max-width: 720px) {
+    .wrap {
+        inset-block-end: 10px;
+        padding: 0 12px;
+    }
+
+    .timer,
+    .timerExpired {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

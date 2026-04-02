@@ -1,17 +1,18 @@
 .container {
-	display: flex;
-
-	width: 100vw;
-	height: 100vh;
-	box-sizing: border-box;
-	font: 400 var(--text-text-medium);
+    position: relative;
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    padding-top: 56px;
+    box-sizing: border-box;
+    font: 400 var(--text-text-medium);
 }
 
 .sidePanel {
-	width: 20%;
-	min-width: 250px;
+    width: 20%;
+    min-width: 250px;
 }
 
 .workspace {
-	flex: 1;
+    flex: 1;
 }

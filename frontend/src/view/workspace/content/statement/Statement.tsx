@@ -8,38 +8,38 @@ import styles from './Statement.module.css'
 import {TaskPreview} from './TaskPreview'
 
 const Statement = reatomComponent(() => {
-	const {selectedTaskIdAtom} = useModel().workspace
-	const task = getTaskStatement(selectedTaskIdAtom())
+    const {selectedTaskIdAtom} = useModel().workspace
+    const task = getTaskStatement(selectedTaskIdAtom())
 
-	if (!task) {
-		return (
-			<div className={styles.emptyState}>
-				<Card className={styles.emptyCard}>
-					<div className={styles.emptyTitle}>Задача не найдена</div>
-					<div className={styles.emptyText}>
-						Для выбранной темы не найден output preview.
-					</div>
-				</Card>
-			</div>
-		)
-	}
+    if (!task) {
+        return (
+            <div className={styles.emptyState}>
+                <Card className={styles.emptyCard}>
+                    <div className={styles.emptyTitle}>Задача не найдена</div>
+                    <div className={styles.emptyText}>
+                        Для выбранной темы не найден output preview.
+                    </div>
+                </Card>
+            </div>
+        )
+    }
 
-	return (
-		<div className={styles.statement}>
-			<div className={styles.header}>
-				<h1 className={styles.title}>{task.label}</h1>
-				<Badge tone={task.statusTone}>{task.status}</Badge>
-			</div>
+    return (
+        <div className={styles.statement}>
+            <div className={styles.header}>
+                <h1 className={styles.title}>{task.label}</h1>
+                <Badge tone={task.statusTone}>{task.status}</Badge>
+            </div>
 
-			<Card className={styles.previewCard}>
-				{task.theme === 'soc'
-					? <SocTaskPreview taskId={task.id} />
-					: <TaskPreview taskId={task.id} />}
-			</Card>
-		</div>
-	)
+            <Card className={styles.previewCard}>
+                {task.theme === 'soc'
+                    ? <SocTaskPreview taskId={task.id}/>
+                    : <TaskPreview taskId={task.id}/>}
+            </Card>
+        </div>
+    )
 })
 
 export {
-	Statement,
+    Statement,
 }

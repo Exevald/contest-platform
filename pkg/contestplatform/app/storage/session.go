@@ -6,6 +6,6 @@ type ParticipantSession struct {
 }
 
 type SessionStorage interface {
-	Load() (*ParticipantSession, error)
+	Load() (ParticipantSession, error)
 	Save(session ParticipantSession) error
 }

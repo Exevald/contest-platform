@@ -13,6 +13,7 @@ type DefSidePanelModelArgs = {
 	getSelectedTaskId: () => string,
 	title: string,
 	participantCode: string,
+	isTimerExpired: () => boolean,
 	languages: Language[],
 }
 
@@ -21,6 +22,7 @@ function defSidePanelModel({
 	getSelectedTaskId,
 	title,
 	participantCode,
+	isTimerExpired,
 	languages,
 }: DefSidePanelModelArgs) {
 	if (languages.length === 0) {
@@ -28,6 +30,7 @@ function defSidePanelModel({
 	}
 	const titleAtom = defAtom(title)
 	const participantCodeAtom = defAtom(participantCode)
+	const isTimerExpiredAtom = defComputed(() => isTimerExpired())
 
 	const selectedFile = defAtom<File | null>(null)
 	const selectedLanguageName = defAtom(verify(languages[0]).name)
@@ -130,11 +133,12 @@ function defSidePanelModel({
 		}
 	})
 
-	const isSubmitDisabled = defComputed(() => !selectedFile() || isSubmittingAtom())
+	const isSubmitDisabled = defComputed(() => !selectedFile() || isSubmittingAtom() || isTimerExpiredAtom())
 
 	return {
 		titleAtom,
 		participantCodeAtom,
+		isTimerExpiredAtom,
 		selectedFile,
 		setSelectedLanguageName,
 		setSelectedFile,

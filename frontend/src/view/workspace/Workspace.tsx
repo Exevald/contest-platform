@@ -10,47 +10,47 @@ import {Tabs} from './tabs/Tabs'
 import styles from './Workspace.module.css'
 
 const Workspace = reatomComponent(({className}: ClassNameProps) => {
-	const {
-		selectedTab,
-		viewsAtom,
-		selectedScreenAtom,
-		setSelectedScreen,
-	} = useModel().workspace
+    const {
+        selectedTab,
+        viewsAtom,
+        selectedScreenAtom,
+        setSelectedScreen,
+    } = useModel().workspace
 
-	let content
+    let content
 
-	switch (selectedScreenAtom()) {
-		case 'submission_history':
-			content = <SubmissionHistory />
-			break
-		case 'statement':
-		default:
-			switch (selectedTab()?.type) {
-				case 'statement':
-					content = <Statement />
-					break
-				case 'table':
-					content = <Table />
-					break
-			}
-			break
-	}
+    switch (selectedScreenAtom()) {
+        case 'submission_history':
+            content = <SubmissionHistory/>
+            break
+        case 'statement':
+        default:
+            switch (selectedTab()?.type) {
+                case 'statement':
+                    content = <Statement/>
+                    break
+                case 'table':
+                    content = <Table/>
+                    break
+            }
+            break
+    }
 
-	return (
-		<div className={joinStyles(className, styles.workspace)}>
-			<Tabs className={styles.tabs} />
-			<SegmentedTabs
-				className={styles.screenTabs}
-				itemClassName={styles.screenTab}
-				items={viewsAtom()}
-				selectedId={selectedScreenAtom()}
-				onSelect={setSelectedScreen}
-			/>
-			<div className={styles.content}>{content}</div>
-		</div>
-	)
+    return (
+        <div className={joinStyles(className, styles.workspace)}>
+            <Tabs className={styles.tabs}/>
+            <SegmentedTabs
+                className={styles.screenTabs}
+                itemClassName={styles.screenTab}
+                items={viewsAtom()}
+                selectedId={selectedScreenAtom()}
+                onSelect={setSelectedScreen}
+            />
+            <div className={styles.content}>{content}</div>
+        </div>
+    )
 })
 
 export {
-	Workspace,
+    Workspace,
 }
