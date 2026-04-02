@@ -1,5 +1,5 @@
 import {reatomComponent} from '@reatom/react'
-import {Button} from '../../common/components/button/Button'
+import {SegmentedTabs} from '../../common/components/segmentedTabs/SegmentedTabs'
 import type {ClassNameProps} from '../../common/components/types'
 import {joinStyles} from '../../common/joinStyles'
 import {useModel} from '../../model/context'
@@ -35,18 +35,13 @@ const Workspace = reatomComponent(({className}: ClassNameProps) => {
 	return (
 		<div className={joinStyles(className, styles.workspace)}>
 			<Tabs className={styles.tabs} />
-			<div className={styles.screenTabs}>
-				{viewsAtom().map(view => (
-					<Button
-						key={view.id}
-						variant={selectedScreenAtom() === view.id ? 'primary' : 'secondary'}
-						className={joinStyles(styles.screenTab, selectedScreenAtom() === view.id && styles.screenTabSelected)}
-						onClick={() => setSelectedScreen(view.id)}
-					>
-						{view.label}
-					</Button>
-				))}
-			</div>
+			<SegmentedTabs
+				className={styles.screenTabs}
+				itemClassName={styles.screenTab}
+				items={viewsAtom()}
+				selectedId={selectedScreenAtom()}
+				onSelect={setSelectedScreen}
+			/>
 			<div className={styles.content}>{content}</div>
 		</div>
 	)

@@ -1,15 +1,6 @@
 .tabs {
-	display: flex;
 }
 
 .tab {
-	text-align: center;
-	flex: 1;
-	user-select: none;
-}
-
-.tab:hover:not(.selected) {
-}
-
-.selected {
+	min-height: 50px;
 }

@@ -1,0 +1,10 @@
+.tabs {
+	display: flex;
+	gap: 12px;
+}
+
+.item {
+	flex: 1;
+	text-align: center;
+	user-select: none;
+}

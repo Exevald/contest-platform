@@ -1,0 +1,16 @@
+.alert {
+	padding: 10px 12px;
+	border-radius: 10px;
+	font: 400 var(--text-text-medium);
+	word-break: break-word;
+}
+
+.neutral {
+	background-color: var(--colors-verdict-neutral-bg);
+	color: var(--colors-verdict-neutral-text);
+}
+
+.error {
+	background-color: var(--colors-verdict-error-bg);
+	color: var(--colors-verdict-error-text);
+}

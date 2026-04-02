@@ -56,3 +56,41 @@ func TestToolchainEnvPrependsCompilersPath(t *testing.T) {
 		t.Fatalf("expected PATH to contain %s, got %s", tempDir, pathValue)
 	}
 }
+
+func TestLanguageConfigIsAvailable(t *testing.T) {
+	tempDir := t.TempDir()
+	platformDir := filepath.Join(tempDir, runtime.GOOS+"-"+runtime.GOARCH, "bin")
+	if err := os.MkdirAll(platformDir, 0755); err != nil {
+		t.Fatalf("mkdir toolchain dir: %v", err)
+	}
+
+	binaryName := "custom-compiler"
+	if runtime.GOOS == "windows" {
+		binaryName += ".exe"
+	}
+	binaryPath := filepath.Join(platformDir, binaryName)
+	if err := os.WriteFile(binaryPath, []byte(""), 0755); err != nil {
+		t.Fatalf("write toolchain binary: %v", err)
+	}
+
+	t.Setenv(BundledCompilersDirEnv, tempDir)
+
+	if !(LanguageConfig{CompilerBinary: "custom-compiler"}).IsAvailable() {
+		t.Fatal("expected compiler to be available")
+	}
+	if (LanguageConfig{CompilerBinary: "missing-compiler"}).IsAvailable() {
+		t.Fatal("expected missing compiler to be unavailable")
+	}
+}
+
+func TestSystemBinaryCandidatesIncludesPython3Alias(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("python3 alias is unix-specific")
+	}
+
+	candidates := systemBinaryCandidates("python")
+	joined := strings.Join(candidates, "\n")
+	if !strings.Contains(joined, "python3") {
+		t.Fatalf("expected python3 fallback in candidates, got %v", candidates)
+	}
+}

@@ -67,9 +67,9 @@ func TestSubmissionService_CanSubmit(t *testing.T) {
 		}
 	})
 
-	t.Run("rejects non cpp", func(t *testing.T) {
-		if err := svc.CanSubmit(p, "python", "print(1)"); err == nil {
-			t.Fatal("expected non-cpp language to be rejected")
+	t.Run("accepts other languages too", func(t *testing.T) {
+		if err := svc.CanSubmit(p, "python", "print(1)"); err != nil {
+			t.Fatalf("expected python to be accepted, got %v", err)
 		}
 	})
 }

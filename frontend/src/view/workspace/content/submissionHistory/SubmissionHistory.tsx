@@ -1,4 +1,5 @@
 import {reatomComponent} from '@reatom/react'
+import {Badge} from '../../../../common/components/badge/Badge'
 import {Button} from '../../../../common/components/button/Button'
 import {Card} from '../../../../common/components/card/Card'
 import {useModel} from '../../../../model/context'
@@ -15,6 +16,23 @@ const verdictLabelMap: Record<string, string> = {
 	SE: 'System Error',
 	TLE: 'Time Limit',
 	WA: 'Wrong Answer',
+}
+
+function verdictTone(verdict: string) {
+	switch (verdict) {
+		case 'OK':
+			return 'ok'
+		case 'TLE':
+		case 'MLE':
+			return 'warning'
+		case 'WA':
+		case 'RE':
+		case 'CE':
+		case 'SE':
+			return 'error'
+		default:
+			return 'neutral'
+	}
 }
 
 const SubmissionHistory = reatomComponent(() => {
@@ -39,7 +57,6 @@ const SubmissionHistory = reatomComponent(() => {
 		<div className={styles.list}>
 			{submissions.map(submission => {
 				const isExpanded = expandedSubmissionIDs.includes(submission.submissionId)
-				const verdictClassName = styles[`verdict${submission.verdict}` as keyof typeof styles] ?? styles.verdictDefault
 
 				return (
 					<Card key={submission.submissionId} className={styles.item}>
@@ -57,9 +74,9 @@ const SubmissionHistory = reatomComponent(() => {
 								</span>
 							</div>
 							<div className={styles.headerRight}>
-								<span className={`${styles.verdictBadge} ${verdictClassName}`}>
+								<Badge tone={verdictTone(submission.verdict)}>
 									{verdictLabelMap[submission.verdict] ?? submission.verdict}
-								</span>
+								</Badge>
 								<span className={styles.chevron}>{isExpanded ? '−' : '+'}</span>
 							</div>
 						</Button>

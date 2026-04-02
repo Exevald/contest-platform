@@ -14,6 +14,26 @@ const api: PlatformApi = {
 					name: 'C++',
 					extension: 'cpp'
 				},
+				{
+					name: 'Go',
+					extension: 'go'
+				},
+				{
+					name: 'JavaScript',
+					extension: 'js'
+				},
+				{
+					name: 'Pascal',
+					extension: 'pas'
+				},
+				{
+					name: 'PHP',
+					extension: 'php'
+				},
+				{
+					name: 'Python',
+					extension: 'py'
+				},
 			],
 			tasks: [
 				{

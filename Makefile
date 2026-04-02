@@ -8,8 +8,18 @@ GO_MOD_CACHE_DIR := $(CURDIR)/.cache/gomod
 GO_ENV := GOCACHE=$(GO_CACHE_DIR) GOMODCACHE=$(GO_MOD_CACHE_DIR)
 WAILS ?= wails
 COMPILERS_DIR ?=
+UNAME_S := $(shell uname -s)
 
-.PHONY: help setup deps frontend-deps frontend-build frontend-clean test dev build build-clean build-macos build-linux build-windows cross-build release-check clean
+ifeq ($(UNAME_S),Darwin)
+APP_CONFIG_ROOT := $(HOME)/Library/Application Support
+else
+APP_CONFIG_ROOT := $(HOME)/.config
+endif
+
+APP_DATA_DIR := $(APP_CONFIG_ROOT)/$(APP_NAME)
+APP_DB_PATH := $(APP_DATA_DIR)/$(APP_NAME).sqlite
+
+.PHONY: help setup deps frontend-deps frontend-build frontend-clean test dev build build-clean build-macos build-linux build-windows cross-build release-check clean reset-db
 
 help:
 	@echo "ContestPlatform build targets"
@@ -36,6 +46,7 @@ help:
 	@echo "Cleanup"
 	@echo "  make clean            Remove local caches and generated frontend dist"
 	@echo "  make build-clean      Remove build/bin contents"
+	@echo "  make reset-db         Remove the local app sqlite database with all saved посылки"
 	@echo ""
 	@echo "Notes"
 	@echo "  1. Run the packaged Wails output from build/bin, for example contestplatform.app on macOS."
@@ -87,3 +98,7 @@ build-clean:
 
 clean: build-clean frontend-clean
 	rm -rf "$(CURDIR)/.cache"
+
+reset-db:
+	rm -f "$(APP_DB_PATH)"
+	@echo "Removed database: $(APP_DB_PATH)"

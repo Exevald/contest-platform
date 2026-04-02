@@ -1,5 +1,5 @@
 import {reatomComponent} from '@reatom/react'
-import {Button} from '../../../common/components/button/Button'
+import {SegmentedTabs} from '../../../common/components/segmentedTabs/SegmentedTabs'
 import type {ClassNameProps} from '../../../common/components/types'
 import {joinStyles} from '../../../common/joinStyles'
 import {useModel} from '../../../model/context'
@@ -13,22 +13,16 @@ const Tabs = reatomComponent(({className}: ClassNameProps) => {
 	} = useModel().workspace
 
 	return (
-		<div className={joinStyles(className, styles.tabs)}>
-			{tabsAtom().map(tab => {
-				const selected = selectedTaskIdAtom() === tab.id
-				return <Button
-					key={tab.id}
-					onClick={() => setSelectedTab(tab.id)}
-					variant={selected ? 'primary' : 'secondary'}
-					className={joinStyles(
-						styles.tab,
-						selected && styles.selected,
-					)}
-				>
-					{tab.label}
-				</Button>
-			})}
-		</div>
+		<SegmentedTabs
+			className={joinStyles(className, styles.tabs)}
+			itemClassName={styles.tab}
+			items={tabsAtom().map(tab => ({
+				id: tab.id,
+				label: tab.label,
+			}))}
+			selectedId={selectedTaskIdAtom()}
+			onSelect={setSelectedTab}
+		/>
 	)
 })
 

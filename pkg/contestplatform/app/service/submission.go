@@ -46,6 +46,10 @@ func (s *submissionService) Submit(ctx context.Context, request SubmitRequest) (
 		return "", fmt.Errorf("problem not found: %w", err)
 	}
 
+	if _, ok := appmodel.Languages[model.Language(request.Language)]; !ok {
+		return "", fmt.Errorf("validation failed: language %q is not supported", request.Language)
+	}
+
 	err = s.domainService.CanSubmit(prob, model.Language(request.Language), request.Source)
 	if err != nil {
 		return "", fmt.Errorf("validation failed: %w", err)

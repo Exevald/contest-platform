@@ -35,6 +35,23 @@ func ToolchainEnv(workDir string) []string {
 	return toolchainEnv(workDir)
 }
 
+func (cfg LanguageConfig) RuntimeBinary() string {
+	if cfg.IsCompiled() {
+		return cfg.CompilerBinary
+	}
+	return cfg.InterpreterBinary
+}
+
+func (cfg LanguageConfig) IsAvailable() bool {
+	tool := cfg.RuntimeBinary()
+	if tool == "" {
+		return false
+	}
+
+	_, err := resolveToolBinary(tool)
+	return err == nil
+}
+
 func (cfg LanguageConfig) IsCompiled() bool {
 	return cfg.CompilerBinary != ""
 }
@@ -109,6 +126,12 @@ func resolveToolBinary(binary string) (string, error) {
 		}
 	}
 
+	for _, candidate := range systemBinaryCandidates(binary) {
+		if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
+			return candidate, nil
+		}
+	}
+
 	resolved, err := exec.LookPath(binary)
 	if err == nil {
 		return resolved, nil
@@ -124,9 +147,13 @@ func resolveToolBinary(binary string) (string, error) {
 }
 
 func binaryCandidates(binary string) []string {
-	binaries := []string{binary, filepath.Base(binary)}
+	binaries := toolNames(binary)
 	if runtime.GOOS == "windows" && filepath.Ext(binary) == "" {
-		binaries = append(binaries, binary+".exe", filepath.Base(binary)+".exe")
+		withExt := make([]string, 0, len(binaries))
+		for _, name := range binaries {
+			withExt = append(withExt, name+".exe")
+		}
+		binaries = append(binaries, withExt...)
 	}
 
 	seen := make(map[string]struct{}, len(binaries)*len(toolchainRoots()))
@@ -143,6 +170,73 @@ func binaryCandidates(binary string) []string {
 	}
 
 	return candidates
+}
+
+func toolNames(binary string) []string {
+	names := []string{binary, filepath.Base(binary)}
+	if runtime.GOOS != "windows" && binary == "python" {
+		names = append(names, "python3")
+	}
+
+	seen := make(map[string]struct{}, len(names))
+	result := make([]string, 0, len(names))
+	for _, name := range names {
+		if _, ok := seen[name]; ok {
+			continue
+		}
+		seen[name] = struct{}{}
+		result = append(result, name)
+	}
+
+	return result
+}
+
+func systemBinaryCandidates(binary string) []string {
+	names := toolNames(binary)
+	candidates := make([]string, 0)
+
+	switch runtime.GOOS {
+	case "darwin":
+		for _, name := range names {
+			candidates = append(candidates,
+				filepath.Join("/usr/bin", name),
+				filepath.Join("/usr/local/bin", name),
+				filepath.Join("/opt/homebrew/bin", name),
+				filepath.Join("/usr/local/go/bin", name),
+			)
+		}
+	case "linux":
+		for _, name := range names {
+			candidates = append(candidates,
+				filepath.Join("/usr/bin", name),
+				filepath.Join("/usr/local/bin", name),
+				filepath.Join("/bin", name),
+				filepath.Join("/usr/local/go/bin", name),
+			)
+		}
+	case "windows":
+		for _, name := range names {
+			candidates = append(candidates,
+				filepath.Join(`C:\`, "Program Files", "Go", "bin", name),
+				filepath.Join(`C:\`, "Program Files", "nodejs", name),
+			)
+		}
+	}
+
+	seen := make(map[string]struct{}, len(candidates))
+	result := make([]string, 0, len(candidates))
+	for _, candidate := range candidates {
+		if candidate == "" {
+			continue
+		}
+		if _, ok := seen[candidate]; ok {
+			continue
+		}
+		seen[candidate] = struct{}{}
+		result = append(result, candidate)
+	}
+
+	return result
 }
 
 func toolchainRoots() []string {
@@ -228,12 +322,41 @@ func bundledCompilersDir() string {
 		return custom
 	}
 
+	if cwd, err := os.Getwd(); err == nil {
+		if dir := firstExistingCompilersDir(
+			filepath.Join(cwd, "compilers"),
+			filepath.Join(filepath.Dir(cwd), "compilers"),
+		); dir != "" {
+			return dir
+		}
+	}
+
 	executable, err := os.Executable()
 	if err != nil {
 		return filepath.Join(".", "compilers")
 	}
 
-	return filepath.Join(filepath.Dir(executable), "compilers")
+	if dir := firstExistingCompilersDir(
+		filepath.Join(filepath.Dir(executable), "compilers"),
+		filepath.Join(filepath.Dir(filepath.Dir(executable)), "compilers"),
+	); dir != "" {
+		return dir
+	}
+
+	return filepath.Join(".", "compilers")
+}
+
+func firstExistingCompilersDir(candidates ...string) string {
+	for _, candidate := range candidates {
+		if candidate == "" {
+			continue
+		}
+		if info, err := os.Stat(candidate); err == nil && info.IsDir() {
+			return candidate
+		}
+	}
+
+	return ""
 }
 
 var Languages = map[domainmodel.Language]LanguageConfig{
@@ -289,6 +412,9 @@ type UILanguage struct {
 func SupportedUILanguages() []UILanguage {
 	languages := make([]UILanguage, 0, len(Languages))
 	for _, config := range Languages {
+		if !config.IsAvailable() {
+			continue
+		}
 		languages = append(languages, UILanguage{
 			Name:      config.DisplayName,
 			Extension: config.SourceExt,

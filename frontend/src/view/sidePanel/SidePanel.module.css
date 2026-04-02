@@ -19,20 +19,3 @@
 	color: var(--colors-text-secondary);
 	text-align: center;
 }
-
-.messageError {
-	padding: 10px 12px;
-	border-radius: 8px;
-	background-color: var(--colors-verdict-error-bg);
-	color: var(--colors-verdict-error-text);
-	font: 400 var(--text-text-medium);
-}
-
-.messageSuccess {
-	padding: 10px 12px;
-	border-radius: 8px;
-	background-color: var(--colors-verdict-neutral-bg);
-	color: var(--colors-verdict-neutral-text);
-	font: 400 var(--text-text-medium);
-	word-break: break-word;
-}

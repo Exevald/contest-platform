@@ -1,4 +1,5 @@
 import {reatomComponent} from '@reatom/react'
+import {Alert} from '../../common/components/alert/Alert'
 import {Button} from '../../common/components/button/Button'
 import {FilePicker} from '../../common/components/filePicker/FilePicker'
 import {Select} from '../../common/components/select/Select'
@@ -26,9 +27,6 @@ const SidePanel = reatomComponent(({className}: ClassNameProps) => {
 	return (
 		<div className={joinStyles(className, styles.container)}>
 			<div className={styles.title}>{titleAtom()}</div>
-			<div className={styles.caption}>
-				Загрузите C++ файл с решением. История посылок и результаты компиляции доступны справа.
-			</div>
 
 			<FilePicker
 				id="file-input"
@@ -55,10 +53,10 @@ const SidePanel = reatomComponent(({className}: ClassNameProps) => {
 			</Button>
 
 			{submitErrorAtom() ? (
-				<div className={styles.messageError}>{submitErrorAtom()}</div>
+				<Alert tone="error">{submitErrorAtom()}</Alert>
 			) : null}
 			{submitResultAtom() ? (
-				<div className={styles.messageSuccess}>Посылка: {submitResultAtom()}</div>
+				<Alert>Посылка: {submitResultAtom()}</Alert>
 			) : null}
 		</div>
 	)
