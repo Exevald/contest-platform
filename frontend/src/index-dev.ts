@@ -1,5 +1,5 @@
 import './index.css'
-import {api} from './api/mock/api'
+import {api} from './api'
 import {startApp} from './common/startApp/startApp'
 import {Platform} from './view/Platform'
 

@@ -14,6 +14,10 @@ export function GetStartupData() {
   return window['go']['main']['App']['GetStartupData']();
 }
 
+export function GetSubmissionHistory(arg1) {
+  return window['go']['main']['App']['GetSubmissionHistory'](arg1);
+}
+
 export function GetSubmissionStatus(arg1) {
   return window['go']['main']['App']['GetSubmissionStatus'](arg1);
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"sort"
 	"time"
@@ -10,8 +9,8 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	appmodel "contest-platform/pkg/contestplatform/app/model"
+	appquery "contest-platform/pkg/contestplatform/app/query"
 	appservice "contest-platform/pkg/contestplatform/app/service"
-	domainmodel "contest-platform/pkg/contestplatform/domain/model"
 	"contest-platform/pkg/contestplatform/infrastructure"
 )
 
@@ -24,14 +23,20 @@ type App struct {
 }
 
 type StartupData struct {
-	Title     string                `json:"title"`
-	Languages []appmodel.UILanguage `json:"languages"`
-	Tasks     []Task                `json:"tasks"`
+	Title          string                `json:"title"`
+	Languages      []appmodel.UILanguage `json:"languages"`
+	Tasks          []Task                `json:"tasks"`
+	WorkspaceViews []WorkspaceView       `json:"workspaceViews"`
 }
 
 type Task struct {
 	ID    string `json:"id"`
 	Type  string `json:"type"`
+	Label string `json:"label"`
+}
+
+type WorkspaceView struct {
+	ID    string `json:"id"`
 	Label string `json:"label"`
 }
 
@@ -41,13 +46,12 @@ type SendFileResponse struct {
 }
 
 type SubmissionStatus struct {
-	SubmissionID string `json:"submissionId"`
-	ProblemID    string `json:"problemId"`
-	Language     string `json:"language"`
-	Verdict      string `json:"verdict"`
-	CreatedAt    string `json:"createdAt"`
-	TestsPassed  int    `json:"testsPassed"`
-	TestsTotal   int    `json:"testsTotal"`
+	SubmissionID      string `json:"submissionId"`
+	ProblemID         string `json:"problemId"`
+	Language          string `json:"language"`
+	Verdict           string `json:"verdict"`
+	CreatedAt         string `json:"createdAt"`
+	CompilationOutput string `json:"compilationOutput"`
 }
 
 func NewApp() *App {
@@ -78,7 +82,7 @@ func (a *App) GetStartupData() (StartupData, error) {
 		return StartupData{}, a.initErr
 	}
 
-	problems, err := a.container.ProblemRepository().List()
+	problems, err := a.container.PlatformQueryService().ListProblems()
 	if err != nil {
 		return StartupData{}, fmt.Errorf("load startup data: %w", err)
 	}
@@ -86,9 +90,9 @@ func (a *App) GetStartupData() (StartupData, error) {
 	tasks := make([]Task, 0, len(problems))
 	for _, problem := range problems {
 		tasks = append(tasks, Task{
-			ID:    string(problem.ID()),
+			ID:    problem.ID,
 			Type:  "table",
-			Label: string(problem.Title()),
+			Label: problem.Title,
 		})
 	}
 
@@ -100,15 +104,19 @@ func (a *App) GetStartupData() (StartupData, error) {
 		Title:     "ContestPlatform",
 		Languages: appmodel.SupportedUILanguages(),
 		Tasks:     tasks,
+		WorkspaceViews: []WorkspaceView{
+			{ID: "statement", Label: "Данные"},
+			{ID: "submission_history", Label: "История посылок"},
+		},
 	}, nil
 }
 
 func (a *App) GetData(id string) (string, error) {
-	problem, err := a.findProblem(id)
+	description, err := a.container.PlatformQueryService().GetProblemDescription(id)
 	if err != nil {
 		return "", err
 	}
-	return problem.Description(), nil
+	return description, nil
 }
 
 func (a *App) ResetTask(id string) (string, error) {
@@ -137,20 +145,12 @@ func (a *App) SendFile(id string, language string, text string) (SendFileRespons
 }
 
 func (a *App) GetLatestSubmission(id string) (*SubmissionStatus, error) {
-	if a.initErr != nil {
-		return nil, a.initErr
+	history, err := a.GetSubmissionHistory(id)
+	if err != nil || len(history) == 0 {
+		return nil, err
 	}
 
-	submission, err := a.container.SubmissionRepository().FindLatest(domainmodel.ProblemID(id))
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("load latest submission for %s: %w", id, err)
-	}
-
-	status := makeSubmissionStatus(submission)
-	return &status, nil
+	return &history[0], nil
 }
 
 func (a *App) GetSubmissionStatus(id string) (*SubmissionStatus, error) {
@@ -158,28 +158,31 @@ func (a *App) GetSubmissionStatus(id string) (*SubmissionStatus, error) {
 		return nil, a.initErr
 	}
 
-	submission, err := a.container.SubmissionRepository().Find(domainmodel.SubmissionID(id))
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("load submission %s: %w", id, err)
+	submission, err := a.container.PlatformQueryService().GetSubmissionStatus(id)
+	if err != nil || submission == nil {
+		return nil, err
 	}
 
-	status := makeSubmissionStatus(submission)
+	status := makeSubmissionStatus(*submission)
 	return &status, nil
 }
 
-func (a *App) findProblem(id string) (domainmodel.Problem, error) {
+func (a *App) GetSubmissionHistory(id string) ([]SubmissionStatus, error) {
 	if a.initErr != nil {
 		return nil, a.initErr
 	}
 
-	problem, err := a.container.ProblemRepository().Find(domainmodel.ProblemID(id))
+	submissions, err := a.container.PlatformQueryService().ListSubmissionHistory(id)
 	if err != nil {
-		return nil, fmt.Errorf("load problem %s: %w", id, err)
+		return nil, fmt.Errorf("load submission history for %s: %w", id, err)
 	}
-	return problem, nil
+
+	history := make([]SubmissionStatus, 0, len(submissions))
+	for _, submission := range submissions {
+		history = append(history, makeSubmissionStatus(submission))
+	}
+
+	return history, nil
 }
 
 func normalizeLanguage(language string) string {
@@ -192,21 +195,13 @@ func normalizeLanguage(language string) string {
 	return language
 }
 
-func makeSubmissionStatus(submission domainmodel.Submission) SubmissionStatus {
-	testsPassed := 0
-	for _, result := range submission.TestResults() {
-		if result.Verdict == domainmodel.VerdictOK {
-			testsPassed++
-		}
-	}
-
+func makeSubmissionStatus(submission appquery.SubmissionView) SubmissionStatus {
 	return SubmissionStatus{
-		SubmissionID: string(submission.ID()),
-		ProblemID:    string(submission.ProblemID()),
-		Language:     string(submission.Language()),
-		Verdict:      string(submission.Verdict()),
-		CreatedAt:    submission.CreatedAt().Format(time.RFC3339),
-		TestsPassed:  testsPassed,
-		TestsTotal:   len(submission.TestResults()),
+		SubmissionID:      submission.ID,
+		ProblemID:         submission.ProblemID,
+		Language:          submission.Language,
+		Verdict:           submission.Verdict,
+		CreatedAt:         submission.CreatedAt.Format(time.RFC3339),
+		CompilationOutput: submission.CompilationOutput,
 	}
 }

@@ -23,21 +23,39 @@ func (repo *submissionRepository) NextID() domainmodel.SubmissionID {
 
 func (repo *submissionRepository) Find(id domainmodel.SubmissionID) (domainmodel.Submission, error) {
 	row := repo.db.QueryRow(`
-		SELECT id, problem_id, language, source_code, verdict, test_results_json, created_at_unix
+		SELECT 
+		    id, 
+		    problem_id,
+		    language,
+		    source_code,
+		    verdict,
+		    test_results_json,
+		    compilation_output,
+		    created_at_unix
 		FROM submissions
 		WHERE id = ?
 	`, string(id))
 
 	var (
-		submissionID  string
-		problemID     string
-		language      string
-		sourceCode    string
-		verdict       string
-		resultsJSON   string
-		createdAtUnix int64
+		submissionID      string
+		problemID         string
+		language          string
+		sourceCode        string
+		verdict           string
+		resultsJSON       string
+		compilationOutput string
+		createdAtUnix     int64
 	)
-	if err := row.Scan(&submissionID, &problemID, &language, &sourceCode, &verdict, &resultsJSON, &createdAtUnix); err != nil {
+	if err := row.Scan(
+		&submissionID,
+		&problemID,
+		&language,
+		&sourceCode,
+		&verdict,
+		&resultsJSON,
+		&compilationOutput,
+		&createdAtUnix,
+	); err != nil {
 		return nil, fmt.Errorf("find submission: %w", err)
 	}
 
@@ -49,19 +67,28 @@ func (repo *submissionRepository) Find(id domainmodel.SubmissionID) (domainmodel
 	}
 
 	return domainmodel.SubmissionFromSnapshot(domainmodel.SubmissionSnapshot{
-		ID:          domainmodel.SubmissionID(submissionID),
-		ProblemID:   domainmodel.ProblemID(problemID),
-		Language:    domainmodel.Language(language),
-		SourceCode:  sourceCode,
-		Verdict:     domainmodel.Verdict(verdict),
-		TestResults: testResults,
-		CreatedAt:   time.Unix(createdAtUnix, 0).UTC(),
+		ID:                domainmodel.SubmissionID(submissionID),
+		ProblemID:         domainmodel.ProblemID(problemID),
+		Language:          domainmodel.Language(language),
+		SourceCode:        sourceCode,
+		Verdict:           domainmodel.Verdict(verdict),
+		TestResults:       testResults,
+		CompilationOutput: compilationOutput,
+		CreatedAt:         time.Unix(createdAtUnix, 0).UTC(),
 	}), nil
 }
 
 func (repo *submissionRepository) FindLatest(problemID domainmodel.ProblemID) (domainmodel.Submission, error) {
 	row := repo.db.QueryRow(`
-		SELECT id, problem_id, language, source_code, verdict, test_results_json, created_at_unix
+		SELECT 
+		    id,
+		    problem_id,
+		    language,
+		    source_code,
+		    verdict,
+		    test_results_json,
+		    compilation_output,
+		    created_at_unix
 		FROM submissions
 		WHERE problem_id = ?
 		ORDER BY created_at_unix DESC, id DESC
@@ -69,15 +96,16 @@ func (repo *submissionRepository) FindLatest(problemID domainmodel.ProblemID) (d
 	`, string(problemID))
 
 	var (
-		submissionID  string
-		foundProblem  string
-		language      string
-		sourceCode    string
-		verdict       string
-		resultsJSON   string
-		createdAtUnix int64
+		submissionID      string
+		foundProblem      string
+		language          string
+		sourceCode        string
+		verdict           string
+		resultsJSON       string
+		compilationOutput string
+		createdAtUnix     int64
 	)
-	if err := row.Scan(&submissionID, &foundProblem, &language, &sourceCode, &verdict, &resultsJSON, &createdAtUnix); err != nil {
+	if err := row.Scan(&submissionID, &foundProblem, &language, &sourceCode, &verdict, &resultsJSON, &compilationOutput, &createdAtUnix); err != nil {
 		return nil, fmt.Errorf("find latest submission: %w", err)
 	}
 
@@ -89,14 +117,82 @@ func (repo *submissionRepository) FindLatest(problemID domainmodel.ProblemID) (d
 	}
 
 	return domainmodel.SubmissionFromSnapshot(domainmodel.SubmissionSnapshot{
-		ID:          domainmodel.SubmissionID(submissionID),
-		ProblemID:   domainmodel.ProblemID(foundProblem),
-		Language:    domainmodel.Language(language),
-		SourceCode:  sourceCode,
-		Verdict:     domainmodel.Verdict(verdict),
-		TestResults: testResults,
-		CreatedAt:   time.Unix(createdAtUnix, 0).UTC(),
+		ID:                domainmodel.SubmissionID(submissionID),
+		ProblemID:         domainmodel.ProblemID(foundProblem),
+		Language:          domainmodel.Language(language),
+		SourceCode:        sourceCode,
+		Verdict:           domainmodel.Verdict(verdict),
+		TestResults:       testResults,
+		CompilationOutput: compilationOutput,
+		CreatedAt:         time.Unix(createdAtUnix, 0).UTC(),
 	}), nil
+}
+
+func (repo *submissionRepository) ListByProblem(problemID domainmodel.ProblemID) ([]domainmodel.Submission, error) {
+	rows, err := repo.db.Query(`
+		SELECT
+		    id,
+		    problem_id,
+		    language,
+		    source_code,
+		    verdict,
+		    test_results_json,
+		    compilation_output,
+		    created_at_unix
+		FROM submissions
+		WHERE problem_id = ?
+		ORDER BY created_at_unix DESC, id DESC
+	`, string(problemID))
+	if err != nil {
+		return nil, fmt.Errorf("list submissions: %w", err)
+	}
+	defer rows.Close()
+
+	submissions := make([]domainmodel.Submission, 0)
+	for rows.Next() {
+		var (
+			submissionID      string
+			foundProblem      string
+			language          string
+			sourceCode        string
+			verdict           string
+			resultsJSON       string
+			compilationOutput string
+			createdAtUnix     int64
+		)
+		if err = rows.Scan(
+			&submissionID,
+			&foundProblem,
+			&language,
+			&sourceCode,
+			&verdict,
+			&resultsJSON,
+			&compilationOutput,
+			&createdAtUnix,
+		); err != nil {
+			return nil, fmt.Errorf("scan submissions: %w", err)
+		}
+
+		var testResults []domainmodel.TestResult
+		if resultsJSON != "" {
+			if err = json.Unmarshal([]byte(resultsJSON), &testResults); err != nil {
+				return nil, fmt.Errorf("unmarshal submission history results: %w", err)
+			}
+		}
+
+		submissions = append(submissions, domainmodel.SubmissionFromSnapshot(domainmodel.SubmissionSnapshot{
+			ID:                domainmodel.SubmissionID(submissionID),
+			ProblemID:         domainmodel.ProblemID(foundProblem),
+			Language:          domainmodel.Language(language),
+			SourceCode:        sourceCode,
+			Verdict:           domainmodel.Verdict(verdict),
+			TestResults:       testResults,
+			CompilationOutput: compilationOutput,
+			CreatedAt:         time.Unix(createdAtUnix, 0).UTC(),
+		}))
+	}
+
+	return submissions, rows.Err()
 }
 
 func (repo *submissionRepository) Store(submission domainmodel.Submission) error {
@@ -107,14 +203,17 @@ func (repo *submissionRepository) Store(submission domainmodel.Submission) error
 	}
 
 	_, err = repo.db.Exec(`
-		INSERT INTO submissions (id, problem_id, language, source_code, verdict, test_results_json, created_at_unix)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO
+		    submissions 
+		(id, problem_id, language, source_code, verdict, test_results_json, compilation_output, created_at_unix)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
 			problem_id = excluded.problem_id,
 			language = excluded.language,
 			source_code = excluded.source_code,
 			verdict = excluded.verdict,
 			test_results_json = excluded.test_results_json,
+			compilation_output = excluded.compilation_output,
 			created_at_unix = excluded.created_at_unix
 	`,
 		string(snapshot.ID),
@@ -123,6 +222,7 @@ func (repo *submissionRepository) Store(submission domainmodel.Submission) error
 		snapshot.SourceCode,
 		string(snapshot.Verdict),
 		string(resultsJSON),
+		snapshot.CompilationOutput,
 		snapshot.CreatedAt.Unix(),
 	)
 	if err != nil {

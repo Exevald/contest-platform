@@ -7,6 +7,7 @@ type WailsAppApi = {
     ResetTask: (id: string) => Promise<string>,
     GetLatestSubmission: (id: string) => Promise<unknown>,
     GetSubmissionStatus: (id: string) => Promise<unknown>,
+    GetSubmissionHistory: (id: string) => Promise<unknown>,
 }
 
 const getBackend = (): WailsAppApi => {
@@ -42,6 +43,10 @@ const api: PlatformApi = {
 
     async getSubmissionStatus({id}: SubmissionArgs): Promise<unknown> {
         return getBackend().GetSubmissionStatus(id)
+    },
+
+    async getSubmissionHistory({id}: SubmissionArgs): Promise<unknown> {
+        return getBackend().GetSubmissionHistory(id)
     },
 }
 

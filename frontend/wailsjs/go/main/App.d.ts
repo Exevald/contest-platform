@@ -8,6 +8,8 @@ export function GetLatestSubmission(arg1:string):Promise<main.SubmissionStatus>;
 
 export function GetStartupData():Promise<main.StartupData>;
 
+export function GetSubmissionHistory(arg1:string):Promise<Array<main.SubmissionStatus>>;
+
 export function GetSubmissionStatus(arg1:string):Promise<main.SubmissionStatus>;
 
 export function ResetTask(arg1:string):Promise<string>;

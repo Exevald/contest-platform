@@ -6,6 +6,8 @@ import (
 	appmodel "contest-platform/pkg/contestplatform/app/model"
 	"contest-platform/pkg/contestplatform/domain/model"
 	"contest-platform/pkg/contestplatform/domain/service"
+
+	"github.com/sirupsen/logrus"
 )
 
 type GradingWorker interface {
@@ -62,6 +64,10 @@ func (w *worker) Run(ctx context.Context) error {
 }
 
 func (w *worker) processTask(ctx context.Context, task appmodel.GradingTask) error {
+	if w.notifyUI != nil {
+		defer w.notifyUI(string(task.SubmissionID))
+	}
+
 	submission, err := w.submissionRepository.Find(task.SubmissionID)
 	if err != nil {
 		return err
@@ -71,19 +77,30 @@ func (w *worker) processTask(ctx context.Context, task appmodel.GradingTask) err
 		return err
 	}
 
-	submission.UpdateVerdict(model.VerdictRunning)
+	submission.UpdateVerdict(model.VerdictCompiling)
 	if err = w.submissionRepository.Store(submission); err != nil {
 		return err
 	}
 
 	workingDir, exePath, err := w.sandbox.Prepare(ctx, submission.Language(), submission.SourceCode())
 	if err != nil {
+		submission.SetCompilationOutput(err.Error())
 		submission.UpdateVerdict(model.VerdictCE)
 		return w.submissionRepository.Store(submission)
 	}
 
+	submission.SetCompilationOutput("Compilation finished successfully.")
+
+	submission.UpdateVerdict(model.VerdictRunning)
+	if err = w.submissionRepository.Store(submission); err != nil {
+		return err
+	}
+
 	defer func() {
-		_ = w.sandbox.Cleanup(workingDir)
+		cleanupErr := w.sandbox.Cleanup(workingDir)
+		if cleanupErr != nil {
+			logrus.Errorf("Error cleaning up submission dir %s: %v", workingDir, cleanupErr)
+		}
 	}()
 
 	for _, tc := range problem.TestCases() {
@@ -110,7 +127,12 @@ func (w *worker) processTask(ctx context.Context, task appmodel.GradingTask) err
 			TimeUsed:   sandboxResponse.TimeUsed,
 			MemoryUsed: sandboxResponse.MemoryUsed,
 		}
-		shouldContinue := w.submissionService.ProcessNextResult(submission, problem, testResult, model.StrategyStopOnFirstFail)
+		shouldContinue := w.submissionService.ProcessNextResult(
+			submission,
+			problem,
+			testResult,
+			model.StrategyStopOnFirstFail,
+		)
 
 		err = w.submissionRepository.Store(submission)
 		if err != nil {
@@ -121,9 +143,5 @@ func (w *worker) processTask(ctx context.Context, task appmodel.GradingTask) err
 			break
 		}
 	}
-	if w.notifyUI != nil {
-		w.notifyUI(string(task.SubmissionID))
-	}
-
 	return w.submissionRepository.Store(submission)
 }

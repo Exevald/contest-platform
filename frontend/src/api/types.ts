@@ -1,12 +1,13 @@
 import type {
 	StartupApi,
 } from '../common/startApp/api/StartupApi'
-import type {Language, Task} from '../model/types'
+import type {Language, Task, WorkspaceView} from '../model/types'
 
 type StartupData = {
 	title: string,
 	languages: Language[],
 	tasks: Task[],
+	workspaceViews: WorkspaceView[],
 }
 
 type GetDataArgs = {
@@ -33,8 +34,7 @@ type SubmissionStatus = {
 	language: string,
 	verdict: string,
 	createdAt: string,
-	testsPassed: number,
-	testsTotal: number,
+	compilationOutput: string,
 }
 
 type PlatformApi = StartupApi<StartupData> & {
@@ -43,6 +43,7 @@ type PlatformApi = StartupApi<StartupData> & {
 	resetTask: <T>(data: ResetTaskArgs) => Promise<T>,
 	getLatestSubmission: <T>(data: SubmissionArgs) => Promise<T>,
 	getSubmissionStatus: <T>(data: SubmissionArgs) => Promise<T>,
+	getSubmissionHistory: <T>(data: SubmissionArgs) => Promise<T>,
 }
 
 export {

@@ -10,6 +10,7 @@ type DefPlatformModel = {
 function defPlatformModel(args: DefPlatformModel) {
 	const workspace = defWorkspaceModel({
 		tabs: args.startupData.tasks,
+		views: args.startupData.workspaceViews,
 		api: args.api,
 	})
 

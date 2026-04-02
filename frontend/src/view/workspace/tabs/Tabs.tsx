@@ -1,4 +1,5 @@
 import {reatomComponent} from '@reatom/react'
+import {Button} from '../../../common/components/button/Button'
 import type {ClassNameProps} from '../../../common/components/types'
 import {joinStyles} from '../../../common/joinStyles'
 import {useModel} from '../../../model/context'
@@ -15,16 +16,17 @@ const Tabs = reatomComponent(({className}: ClassNameProps) => {
 		<div className={joinStyles(className, styles.tabs)}>
 			{tabsAtom().map(tab => {
 				const selected = selectedTaskIdAtom() === tab.id
-				return <div
+				return <Button
 					key={tab.id}
 					onClick={() => setSelectedTab(tab.id)}
+					variant={selected ? 'primary' : 'secondary'}
 					className={joinStyles(
 						styles.tab,
 						selected && styles.selected,
 					)}
 				>
 					{tab.label}
-				</div>
+				</Button>
 			})}
 		</div>
 	)

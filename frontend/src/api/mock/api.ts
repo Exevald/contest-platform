@@ -14,18 +14,6 @@ const api: PlatformApi = {
 					name: 'C++',
 					extension: 'cpp'
 				},
-				{
-					name: 'Pascal',
-					extension: 'pas'
-				},
-				{
-					name: 'JavaScript',
-					extension: 'js'
-				},
-				{
-					name: 'Python',
-					extension: 'py'
-				},
 			],
 			tasks: [
 				{
@@ -45,6 +33,16 @@ const api: PlatformApi = {
 					label: 'Генератор маршрутов',
 				},
 			],
+			workspaceViews: [
+				{
+					id: 'statement',
+					label: 'Данные',
+				},
+				{
+					id: 'submission_history',
+					label: 'История посылок',
+				},
+			],
 		}
 	},
 
@@ -60,6 +58,18 @@ const api: PlatformApi = {
 
 	resetTask(data: ResetTaskArgs) {
 		return taskData[data.id]
+	},
+
+	getLatestSubmission() {
+		return Promise.resolve(null)
+	},
+
+	getSubmissionStatus() {
+		return Promise.resolve(null)
+	},
+
+	getSubmissionHistory() {
+		return Promise.resolve([])
 	},
 }
 

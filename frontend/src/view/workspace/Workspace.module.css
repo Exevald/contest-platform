@@ -1,8 +1,30 @@
 .workspace {
 	display: flex;
 	flex-direction: column;
+	min-width: 0;
 }
 
 .tabs {
 	height: 50px;
+}
+
+.screenTabs {
+	display: flex;
+	gap: 12px;
+	padding: 16px 20px 0;
+	background-color: var(--colors-surface-default);
+}
+
+.screenTab {
+	min-height: 36px;
+}
+
+.screenTabSelected {
+}
+
+.content {
+	flex: 1;
+	min-height: 0;
+	padding: 20px;
+	box-sizing: border-box;
 }

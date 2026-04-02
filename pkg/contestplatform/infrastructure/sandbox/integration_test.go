@@ -74,14 +74,16 @@ func TestSubmissionRunsThroughSandboxAndGetsOKVerdict(t *testing.T) {
 
 	submissionID, err := submissionAppService.Submit(ctx, appservice.SubmitRequest{
 		ProblemID: "sum",
-		Language:  "go",
-		Source: `package main
-import "fmt"
-func main() {
-	var a, b int
-	fmt.Scan(&a, &b)
-	fmt.Println(a + b)
-}`,
+		Language:  "cpp",
+		Source: `#include <iostream>
+
+		int main() {
+			int a = 0;
+			int b = 0;
+			std::cin >> a >> b;
+			std::cout << (a + b) << '\n';
+			return 0;
+		}`,
 	})
 	if err != nil {
 		t.Fatalf("submit: %v", err)

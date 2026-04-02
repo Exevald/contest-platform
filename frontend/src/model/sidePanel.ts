@@ -32,6 +32,7 @@ function defSidePanelModel({
 	const submitResultAtom = defAtom<string | null>(null)
 	const isSubmittingAtom = defAtom(false)
 	const submissionRefreshAtom = defAtom(0)
+	const expandedSubmissionIDsAtom = defAtom<string[]>([])
 	let pollTimeout: ReturnType<typeof setTimeout> | null = null
 	const setSelectedLanguageName = defAction((language: string) => {
 		selectedLanguageName.set(language)
@@ -48,11 +49,19 @@ function defSidePanelModel({
 		})
 	})
 
-	const latestSubmissionAtom = computed(async () => {
+	const submissionHistoryAtom = computed(async () => {
 		submissionRefreshAtom()
 		const id = getSelectedTaskId()
-		return wrap(api.getLatestSubmission<SubmissionStatus | null>({id}))
+		return wrap(api.getSubmissionHistory<SubmissionStatus[]>({id}))
 	}).extend(withAsyncData())
+
+	const toggleSubmissionExpanded = defAction((submissionID: string) => {
+		expandedSubmissionIDsAtom.set(value => (
+			value.includes(submissionID)
+				? value.filter(id => id !== submissionID)
+				: [...value, submissionID]
+		))
+	})
 
 	const scheduleStatusPoll = (submissionId: string) => {
 		if (pollTimeout) {
@@ -132,7 +141,9 @@ function defSidePanelModel({
 		submitErrorAtom,
 		submitResultAtom,
 		isSubmittingAtom,
-		latestSubmissionAtom,
+		submissionHistoryAtom,
+		expandedSubmissionIDsAtom,
+		toggleSubmissionExpanded,
 	}
 }
 

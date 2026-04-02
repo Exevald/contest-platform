@@ -30,6 +30,9 @@ func (svc *submissionService) CanSubmit(problem model.Problem, language model.La
 	if len(problem.TestCases()) == 0 {
 		return errors.New("problem has no test cases")
 	}
+	if language != "cpp" {
+		return errors.New("only C++ submissions are supported right now")
+	}
 	return nil
 }
 

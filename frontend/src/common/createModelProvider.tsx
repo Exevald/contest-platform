@@ -6,9 +6,8 @@ import {
 import type {
 	Atom, AtomLike, Fn,
 } from '@reatom/core'
-import {useFrame} from '@reatom/react'
 import {
-	useContext, useMemo, createContext,
+	useContext, useRef, createContext,
 } from 'react'
 import type {
 	PropsWithChildren,
@@ -53,13 +52,15 @@ function createModelProvider<ARGS, MODEL extends Record<string, AtomLike>>(
 	const ModelContext = createContext<MODEL | null>(null)
 
 	const Provider = (args: PropsWithChildren<ARGS>) => {
-		const frame = useFrame()
 		const {children, ...props} = args
+		const modelRef = useRef<MODEL | null>(null)
 
-		const model = useMemo(() => createModel(props as ARGS), [frame])
+		if (!modelRef.current) {
+			modelRef.current = createModel(props as ARGS)
+		}
 
 		return (
-			<ModelContext.Provider value={model as MODEL | null}>
+			<ModelContext.Provider value={modelRef.current as MODEL | null}>
 				{children}
 			</ModelContext.Provider>
 		)

@@ -48,12 +48,17 @@ func migrate(db *sql.DB) error {
 			source_code TEXT NOT NULL,
 			verdict TEXT NOT NULL,
 			test_results_json TEXT NOT NULL,
+			compilation_output TEXT NOT NULL DEFAULT '',
 			created_at_unix INTEGER NOT NULL
 		)`,
+		`ALTER TABLE submissions ADD COLUMN compilation_output TEXT NOT NULL DEFAULT ''`,
 	}
 
 	for _, statement := range statements {
 		if _, err := db.Exec(statement); err != nil {
+			if statement == `ALTER TABLE submissions ADD COLUMN compilation_output TEXT NOT NULL DEFAULT ''` {
+				continue
+			}
 			return fmt.Errorf("migrate sqlite database: %w", err)
 		}
 	}

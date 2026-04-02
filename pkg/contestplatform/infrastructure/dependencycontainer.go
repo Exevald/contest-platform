@@ -10,10 +10,12 @@ import (
 	"time"
 
 	appmodel "contest-platform/pkg/contestplatform/app/model"
+	appquery "contest-platform/pkg/contestplatform/app/query"
 	appservice "contest-platform/pkg/contestplatform/app/service"
 	domainmodel "contest-platform/pkg/contestplatform/domain/model"
 	domainservice "contest-platform/pkg/contestplatform/domain/service"
 	"contest-platform/pkg/contestplatform/infrastructure/sandbox"
+	sqlitequery "contest-platform/pkg/contestplatform/infrastructure/sqlite/query"
 	sqliterepo "contest-platform/pkg/contestplatform/infrastructure/sqlite/repo"
 )
 
@@ -21,6 +23,7 @@ type DependencyContainer struct {
 	db                   *sql.DB
 	problemRepository    domainmodel.ProblemRepository
 	submissionRepository domainmodel.SubmissionRepository
+	platformQueryService appquery.PlatformQueryService
 	submissionService    appservice.SubmissionService
 	gradingWorker        appservice.GradingWorker
 	gradingTasks         chan appmodel.GradingTask
@@ -41,6 +44,7 @@ func NewDependencyContainer(appID string) (*DependencyContainer, error) {
 
 	problemRepository := sqliterepo.NewProblemRepository(db)
 	submissionRepository := sqliterepo.NewSubmissionRepository(db)
+	platformQueryService := sqlitequery.NewPlatformQueryService(db)
 	if err = seedProblems(problemRepository); err != nil {
 		_ = db.Close()
 		return nil, err
@@ -60,6 +64,7 @@ func NewDependencyContainer(appID string) (*DependencyContainer, error) {
 		db:                   db,
 		problemRepository:    problemRepository,
 		submissionRepository: submissionRepository,
+		platformQueryService: platformQueryService,
 		submissionService: appservice.NewSubmissionService(
 			submissionRepository,
 			problemRepository,
@@ -110,6 +115,10 @@ func (c *DependencyContainer) SubmissionRepository() domainmodel.SubmissionRepos
 	return c.submissionRepository
 }
 
+func (c *DependencyContainer) PlatformQueryService() appquery.PlatformQueryService {
+	return c.platformQueryService
+}
+
 func resolveAppDataDir(appID string) (string, error) {
 	root, err := os.UserConfigDir()
 	if err != nil {
@@ -125,14 +134,6 @@ func resolveAppDataDir(appID string) (string, error) {
 }
 
 func seedProblems(repo domainmodel.ProblemRepository) error {
-	existing, err := repo.List()
-	if err != nil {
-		return err
-	}
-	if len(existing) > 0 {
-		return nil
-	}
-
 	problems, err := sampleProblems()
 	if err != nil {
 		return err
@@ -164,6 +165,12 @@ func sampleProblems() ([]domainmodel.Problem, error) {
 	if err = orders.AddTestCase("1 2\n", "3\n", true); err != nil {
 		return nil, err
 	}
+	if err = orders.AddTestCase("10 20\n", "30\n", false); err != nil {
+		return nil, err
+	}
+	if err = orders.AddTestCase("-5 3\n", "-2\n", false); err != nil {
+		return nil, err
+	}
 
 	demand, err := domainmodel.NewProblem(
 		"task-demand",
@@ -177,6 +184,12 @@ func sampleProblems() ([]domainmodel.Problem, error) {
 	if err = demand.AddTestCase("2 5\n", "7\n", true); err != nil {
 		return nil, err
 	}
+	if err = demand.AddTestCase("100 250\n", "350\n", false); err != nil {
+		return nil, err
+	}
+	if err = demand.AddTestCase("0 0\n", "0\n", false); err != nil {
+		return nil, err
+	}
 
 	routes, err := domainmodel.NewProblem(
 		"task-routes",
@@ -188,6 +201,12 @@ func sampleProblems() ([]domainmodel.Problem, error) {
 		return nil, err
 	}
 	if err = routes.AddTestCase("10 32\n", "42\n", true); err != nil {
+		return nil, err
+	}
+	if err = routes.AddTestCase("1 999\n", "1000\n", false); err != nil {
+		return nil, err
+	}
+	if err = routes.AddTestCase("12345 67890\n", "80235\n", false); err != nil {
 		return nil, err
 	}
 

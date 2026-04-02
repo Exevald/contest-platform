@@ -53,3 +53,23 @@ func TestSubmissionService_ProcessNextResult(t *testing.T) {
 		}
 	})
 }
+
+func TestSubmissionService_CanSubmit(t *testing.T) {
+	judge := NewJudgeService()
+	svc := NewSubmissionService(judge)
+
+	p, _ := model.NewProblem("P1", "Title", "Desc", model.Constraints{TimeLimit: time.Second, MemoryLimit: 1024})
+	_ = p.AddTestCase("1", "1", true)
+
+	t.Run("accepts cpp", func(t *testing.T) {
+		if err := svc.CanSubmit(p, "cpp", "int main(){}"); err != nil {
+			t.Fatalf("expected cpp to be accepted, got %v", err)
+		}
+	})
+
+	t.Run("rejects non cpp", func(t *testing.T) {
+		if err := svc.CanSubmit(p, "python", "print(1)"); err == nil {
+			t.Fatal("expected non-cpp language to be rejected")
+		}
+	})
+}

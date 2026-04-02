@@ -10,8 +10,15 @@ type Language = {
 }
 
 type TabType = 'table'
+type WorkspaceScreen = 'statement' | 'submission_history'
+type WorkspaceView = {
+	id: WorkspaceScreen,
+	label: string,
+}
 
 export type {
 	Task,
 	Language,
+	WorkspaceScreen,
+	WorkspaceView,
 }
