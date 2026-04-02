@@ -18,7 +18,7 @@ type sessionStorage struct {
 	db *sql.DB
 }
 
-func (storage *sessionStorage) Load() (appmodel.ParticipantSession, error) {
+func (storage *sessionStorage) Load() (*appmodel.ParticipantSession, error) {
 	row := storage.db.QueryRow(`
 		SELECT participant_code, theme
 		FROM participant_session
@@ -28,12 +28,12 @@ func (storage *sessionStorage) Load() (appmodel.ParticipantSession, error) {
 	var session appmodel.ParticipantSession
 	if err := row.Scan(&session.ParticipantCode, &session.Theme); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return appmodel.ParticipantSession{}, nil
+			return nil, nil
 		}
-		return appmodel.ParticipantSession{}, fmt.Errorf("load participant session: %w", err)
+		return nil, fmt.Errorf("load participant session: %w", err)
 	}
 
-	return session, nil
+	return &session, nil
 }
 
 func (storage *sessionStorage) Save(session appmodel.ParticipantSession) error {
