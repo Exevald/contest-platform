@@ -15,3 +15,5 @@ export function GetSubmissionStatus(arg1:string):Promise<main.SubmissionStatus>;
 export function ResetTask(arg1:string):Promise<string>;
 
 export function SendFile(arg1:string,arg2:string,arg3:string):Promise<main.SendFileResponse>;
+
+export function StartSession(arg1:main.StartSessionRequest):Promise<main.StartupData>;

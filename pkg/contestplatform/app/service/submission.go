@@ -10,9 +10,10 @@ import (
 )
 
 type SubmitRequest struct {
-	ProblemID string
-	Language  string
-	Source    string
+	ProblemID       string
+	ParticipantCode string
+	Language        string
+	Source          string
 }
 
 type SubmissionService interface {
@@ -59,6 +60,7 @@ func (s *submissionService) Submit(ctx context.Context, request SubmitRequest) (
 	sub := model.NewSubmission(
 		subID,
 		prob.ID(),
+		request.ParticipantCode,
 		model.Language(request.Language),
 		request.Source,
 	)

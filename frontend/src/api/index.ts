@@ -34,6 +34,10 @@ const api: PlatformApi = {
 	getSubmissionHistory(args) {
 		return (hasBackend() ? backendApi : mockApi).getSubmissionHistory(args)
 	},
+
+	startSession(args) {
+		return (hasBackend() ? backendApi : mockApi).startSession(args)
+	},
 }
 
 export {

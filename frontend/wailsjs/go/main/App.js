@@ -29,3 +29,7 @@ export function ResetTask(arg1) {
 export function SendFile(arg1, arg2, arg3) {
   return window['go']['main']['App']['SendFile'](arg1, arg2, arg3);
 }
+
+export function StartSession(arg1) {
+  return window['go']['main']['App']['StartSession'](arg1);
+}

@@ -26,6 +26,7 @@ func (repo *submissionRepository) Find(id domainmodel.SubmissionID) (domainmodel
 		SELECT 
 		    id, 
 		    problem_id,
+		    participant_code,
 		    language,
 		    source_code,
 		    verdict,
@@ -39,6 +40,7 @@ func (repo *submissionRepository) Find(id domainmodel.SubmissionID) (domainmodel
 	var (
 		submissionID      string
 		problemID         string
+		participantCode   string
 		language          string
 		sourceCode        string
 		verdict           string
@@ -49,6 +51,7 @@ func (repo *submissionRepository) Find(id domainmodel.SubmissionID) (domainmodel
 	if err := row.Scan(
 		&submissionID,
 		&problemID,
+		&participantCode,
 		&language,
 		&sourceCode,
 		&verdict,
@@ -69,6 +72,7 @@ func (repo *submissionRepository) Find(id domainmodel.SubmissionID) (domainmodel
 	return domainmodel.SubmissionFromSnapshot(domainmodel.SubmissionSnapshot{
 		ID:                domainmodel.SubmissionID(submissionID),
 		ProblemID:         domainmodel.ProblemID(problemID),
+		ParticipantCode:   participantCode,
 		Language:          domainmodel.Language(language),
 		SourceCode:        sourceCode,
 		Verdict:           domainmodel.Verdict(verdict),
@@ -83,6 +87,7 @@ func (repo *submissionRepository) FindLatest(problemID domainmodel.ProblemID) (d
 		SELECT 
 		    id,
 		    problem_id,
+		    participant_code,
 		    language,
 		    source_code,
 		    verdict,
@@ -98,6 +103,7 @@ func (repo *submissionRepository) FindLatest(problemID domainmodel.ProblemID) (d
 	var (
 		submissionID      string
 		foundProblem      string
+		participantCode   string
 		language          string
 		sourceCode        string
 		verdict           string
@@ -105,7 +111,7 @@ func (repo *submissionRepository) FindLatest(problemID domainmodel.ProblemID) (d
 		compilationOutput string
 		createdAtUnix     int64
 	)
-	if err := row.Scan(&submissionID, &foundProblem, &language, &sourceCode, &verdict, &resultsJSON, &compilationOutput, &createdAtUnix); err != nil {
+	if err := row.Scan(&submissionID, &foundProblem, &participantCode, &language, &sourceCode, &verdict, &resultsJSON, &compilationOutput, &createdAtUnix); err != nil {
 		return nil, fmt.Errorf("find latest submission: %w", err)
 	}
 
@@ -119,6 +125,7 @@ func (repo *submissionRepository) FindLatest(problemID domainmodel.ProblemID) (d
 	return domainmodel.SubmissionFromSnapshot(domainmodel.SubmissionSnapshot{
 		ID:                domainmodel.SubmissionID(submissionID),
 		ProblemID:         domainmodel.ProblemID(foundProblem),
+		ParticipantCode:   participantCode,
 		Language:          domainmodel.Language(language),
 		SourceCode:        sourceCode,
 		Verdict:           domainmodel.Verdict(verdict),
@@ -133,6 +140,7 @@ func (repo *submissionRepository) ListByProblem(problemID domainmodel.ProblemID)
 		SELECT
 		    id,
 		    problem_id,
+		    participant_code,
 		    language,
 		    source_code,
 		    verdict,
@@ -153,6 +161,7 @@ func (repo *submissionRepository) ListByProblem(problemID domainmodel.ProblemID)
 		var (
 			submissionID      string
 			foundProblem      string
+			participantCode   string
 			language          string
 			sourceCode        string
 			verdict           string
@@ -163,6 +172,7 @@ func (repo *submissionRepository) ListByProblem(problemID domainmodel.ProblemID)
 		if err = rows.Scan(
 			&submissionID,
 			&foundProblem,
+			&participantCode,
 			&language,
 			&sourceCode,
 			&verdict,
@@ -183,6 +193,7 @@ func (repo *submissionRepository) ListByProblem(problemID domainmodel.ProblemID)
 		submissions = append(submissions, domainmodel.SubmissionFromSnapshot(domainmodel.SubmissionSnapshot{
 			ID:                domainmodel.SubmissionID(submissionID),
 			ProblemID:         domainmodel.ProblemID(foundProblem),
+			ParticipantCode:   participantCode,
 			Language:          domainmodel.Language(language),
 			SourceCode:        sourceCode,
 			Verdict:           domainmodel.Verdict(verdict),
@@ -205,10 +216,11 @@ func (repo *submissionRepository) Store(submission domainmodel.Submission) error
 	_, err = repo.db.Exec(`
 		INSERT INTO
 		    submissions 
-		(id, problem_id, language, source_code, verdict, test_results_json, compilation_output, created_at_unix)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		(id, problem_id, participant_code, language, source_code, verdict, test_results_json, compilation_output, created_at_unix)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
 			problem_id = excluded.problem_id,
+			participant_code = excluded.participant_code,
 			language = excluded.language,
 			source_code = excluded.source_code,
 			verdict = excluded.verdict,
@@ -218,6 +230,7 @@ func (repo *submissionRepository) Store(submission domainmodel.Submission) error
 	`,
 		string(snapshot.ID),
 		string(snapshot.ProblemID),
+		snapshot.ParticipantCode,
 		string(snapshot.Language),
 		snapshot.SourceCode,
 		string(snapshot.Verdict),

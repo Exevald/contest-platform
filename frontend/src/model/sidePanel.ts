@@ -12,6 +12,7 @@ type DefSidePanelModelArgs = {
 	api: PlatformApi,
 	getSelectedTaskId: () => string,
 	title: string,
+	participantCode: string,
 	languages: Language[],
 }
 
@@ -19,12 +20,14 @@ function defSidePanelModel({
 	api,
 	getSelectedTaskId,
 	title,
+	participantCode,
 	languages,
 }: DefSidePanelModelArgs) {
 	if (languages.length === 0) {
 		PANIC('No languages specified.')
 	}
 	const titleAtom = defAtom(title)
+	const participantCodeAtom = defAtom(participantCode)
 
 	const selectedFile = defAtom<File | null>(null)
 	const selectedLanguageName = defAtom(verify(languages[0]).name)
@@ -131,6 +134,7 @@ function defSidePanelModel({
 
 	return {
 		titleAtom,
+		participantCodeAtom,
 		selectedFile,
 		setSelectedLanguageName,
 		setSelectedFile,

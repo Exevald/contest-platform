@@ -1,0 +1,107 @@
+.page {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 100vh;
+	padding: 24px;
+	box-sizing: border-box;
+	background:
+		radial-gradient(circle at top left, rgba(255, 186, 146, 0.35), transparent 28%),
+		radial-gradient(circle at bottom right, rgba(87, 140, 255, 0.18), transparent 32%),
+		linear-gradient(180deg, rgba(247, 248, 249, 1), rgba(237, 241, 245, 1));
+}
+
+.panel {
+	width: min(560px, 100%);
+	padding: 32px;
+	border: 1px solid rgba(15, 23, 42, 0.08);
+	border-radius: 28px;
+	background: rgba(255, 255, 255, 0.84);
+	box-shadow: 0 24px 60px rgba(15, 23, 42, 0.1);
+	backdrop-filter: blur(12px);
+}
+
+.eyebrow {
+	font: 700 11px/16px var(--font-family);
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--colors-text-secondary);
+}
+
+.title {
+	margin: 10px 0 8px;
+	font: 700 34px/1.04 Georgia, "Times New Roman", serif;
+}
+
+.subtitle {
+	margin: 0 0 24px;
+	color: var(--colors-text-secondary);
+	font: 400 15px/24px var(--font-family);
+}
+
+.block + .block {
+	margin-top: 18px;
+}
+
+.label {
+	margin-bottom: 10px;
+	font: 700 12px/16px var(--font-family);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--colors-text-secondary);
+}
+
+.input {
+	width: 100%;
+	min-height: 48px;
+	padding: 0 14px;
+	border: 1px solid var(--colors-dividers-default);
+	border-radius: 14px;
+	box-sizing: border-box;
+	background: rgba(255, 255, 255, 0.88);
+	font: 600 15px/20px var(--font-family);
+	color: var(--colors-text-primary);
+	outline: none;
+}
+
+.input:focus {
+	border-color: rgba(50, 53, 55, 0.4);
+	box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.12);
+}
+
+.themeTabs {
+	display: flex;
+}
+
+.themeTab {
+	min-height: 46px;
+	margin-right: 12px;
+}
+
+.themeTab:last-child {
+	margin-right: 0;
+}
+
+.error {
+	margin: 18px 0;
+	padding: 12px 14px;
+	border-radius: 14px;
+	background: rgba(253, 232, 232, 1);
+	color: rgba(185, 28, 28, 1);
+	font: 600 14px/20px var(--font-family);
+}
+
+.startButton {
+	margin-top: 24px;
+}
+
+@media (max-width: 720px) {
+	.panel {
+		padding: 24px;
+		border-radius: 22px;
+	}
+
+	.title {
+		font-size: 28px;
+	}
+}

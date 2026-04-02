@@ -1,13 +1,15 @@
 import type {
 	StartupApi,
 } from '../common/startApp/api/StartupApi'
-import type {Language, Task, WorkspaceView} from '../model/types'
+import type {Language, Task, ThemeKey, WorkspaceView} from '../model/types'
 
 type StartupData = {
 	title: string,
 	languages: Language[],
 	tasks: Task[],
 	workspaceViews: WorkspaceView[],
+	participantCode: string,
+	selectedTheme: string,
 }
 
 type GetDataArgs = {
@@ -28,6 +30,11 @@ type SubmissionArgs = {
 	id: string
 }
 
+type StartSessionArgs = {
+	participantCode: string,
+	theme: ThemeKey,
+}
+
 type SubmissionStatus = {
 	submissionId: string,
 	problemId: string,
@@ -44,6 +51,7 @@ type PlatformApi = StartupApi<StartupData> & {
 	getLatestSubmission: <T>(data: SubmissionArgs) => Promise<T>,
 	getSubmissionStatus: <T>(data: SubmissionArgs) => Promise<T>,
 	getSubmissionHistory: <T>(data: SubmissionArgs) => Promise<T>,
+	startSession: (data: StartSessionArgs) => Promise<StartupData>,
 }
 
 export {
@@ -54,4 +62,5 @@ export {
 	ResetTaskArgs,
 	SubmissionArgs,
 	SubmissionStatus,
+	StartSessionArgs,
 }

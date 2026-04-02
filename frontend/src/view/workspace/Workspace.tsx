@@ -4,6 +4,7 @@ import type {ClassNameProps} from '../../common/components/types'
 import {joinStyles} from '../../common/joinStyles'
 import {useModel} from '../../model/context'
 import {SubmissionHistory} from './content/submissionHistory/SubmissionHistory'
+import {Statement} from './content/statement/Statement'
 import {Table} from './content/table/Table'
 import {Tabs} from './tabs/Tabs'
 import styles from './Workspace.module.css'
@@ -25,6 +26,9 @@ const Workspace = reatomComponent(({className}: ClassNameProps) => {
 		case 'statement':
 		default:
 			switch (selectedTab()?.type) {
+				case 'statement':
+					content = <Statement />
+					break
 				case 'table':
 					content = <Table />
 					break

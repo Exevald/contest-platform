@@ -1,4 +1,4 @@
-import type {GetDataArgs, PlatformApi, ResetTaskArgs, SendFileArgs, StartupData, SubmissionArgs,} from '../types'
+import type {GetDataArgs, PlatformApi, ResetTaskArgs, SendFileArgs, StartSessionArgs, StartupData, SubmissionArgs,} from '../types'
 
 type WailsAppApi = {
     GetStartupData: () => Promise<StartupData>,
@@ -8,6 +8,7 @@ type WailsAppApi = {
     GetLatestSubmission: (id: string) => Promise<unknown>,
     GetSubmissionStatus: (id: string) => Promise<unknown>,
     GetSubmissionHistory: (id: string) => Promise<unknown>,
+    StartSession: (request: StartSessionArgs) => Promise<StartupData>,
 }
 
 const getBackend = (): WailsAppApi => {
@@ -47,6 +48,10 @@ const api: PlatformApi = {
 
     async getSubmissionHistory({id}: SubmissionArgs): Promise<unknown> {
         return getBackend().GetSubmissionHistory(id)
+    },
+
+    async startSession(request: StartSessionArgs): Promise<StartupData> {
+        return getBackend().StartSession(request)
     },
 }
 

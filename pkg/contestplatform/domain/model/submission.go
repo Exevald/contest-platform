@@ -27,6 +27,7 @@ type SubmissionRepository interface {
 type Submission interface {
 	ID() SubmissionID
 	ProblemID() ProblemID
+	ParticipantCode() string
 	Language() Language
 	SourceCode() string
 	Verdict() Verdict
@@ -42,6 +43,7 @@ type Submission interface {
 type submission struct {
 	id                SubmissionID
 	problemID         ProblemID
+	participantCode   string
 	language          Language
 	sourceCode        string
 	verdict           Verdict
@@ -50,20 +52,22 @@ type submission struct {
 	createdAt         time.Time
 }
 
-func NewSubmission(id SubmissionID, pID ProblemID, lang Language, code string) Submission {
+func NewSubmission(id SubmissionID, pID ProblemID, participantCode string, lang Language, code string) Submission {
 	return &submission{
-		id:          id,
-		problemID:   pID,
-		language:    lang,
-		sourceCode:  code,
-		verdict:     VerdictPending,
-		testResults: make([]TestResult, 0),
-		createdAt:   time.Now(),
+		id:              id,
+		problemID:       pID,
+		participantCode: participantCode,
+		language:        lang,
+		sourceCode:      code,
+		verdict:         VerdictPending,
+		testResults:     make([]TestResult, 0),
+		createdAt:       time.Now(),
 	}
 }
 
 func (s *submission) ID() SubmissionID          { return s.id }
 func (s *submission) ProblemID() ProblemID      { return s.problemID }
+func (s *submission) ParticipantCode() string   { return s.participantCode }
 func (s *submission) Language() Language        { return s.language }
 func (s *submission) SourceCode() string        { return s.sourceCode }
 func (s *submission) Verdict() Verdict          { return s.verdict }
@@ -90,6 +94,7 @@ func (s *submission) SetCompilationOutput(output string) {
 type SubmissionSnapshot struct {
 	ID                SubmissionID
 	ProblemID         ProblemID
+	ParticipantCode   string
 	Language          Language
 	SourceCode        string
 	Verdict           Verdict
@@ -102,6 +107,7 @@ func SnapshotSubmission(submission Submission) SubmissionSnapshot {
 	return SubmissionSnapshot{
 		ID:                submission.ID(),
 		ProblemID:         submission.ProblemID(),
+		ParticipantCode:   submission.ParticipantCode(),
 		Language:          submission.Language(),
 		SourceCode:        submission.SourceCode(),
 		Verdict:           submission.Verdict(),
@@ -115,6 +121,7 @@ func SubmissionFromSnapshot(snapshot SubmissionSnapshot) Submission {
 	submission := &submission{
 		id:                snapshot.ID,
 		problemID:         snapshot.ProblemID,
+		participantCode:   snapshot.ParticipantCode,
 		language:          snapshot.Language,
 		sourceCode:        snapshot.SourceCode,
 		verdict:           snapshot.Verdict,

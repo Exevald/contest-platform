@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"contest-platform/pkg/contestplatform/app/storage"
 	"context"
 	"database/sql"
 	"fmt"
@@ -12,17 +13,20 @@ import (
 	appmodel "contest-platform/pkg/contestplatform/app/model"
 	appquery "contest-platform/pkg/contestplatform/app/query"
 	appservice "contest-platform/pkg/contestplatform/app/service"
+	"contest-platform/pkg/contestplatform/config"
 	domainmodel "contest-platform/pkg/contestplatform/domain/model"
 	domainservice "contest-platform/pkg/contestplatform/domain/service"
 	"contest-platform/pkg/contestplatform/infrastructure/sandbox"
 	sqlitequery "contest-platform/pkg/contestplatform/infrastructure/sqlite/query"
 	sqliterepo "contest-platform/pkg/contestplatform/infrastructure/sqlite/repo"
+	sqlitestorage "contest-platform/pkg/contestplatform/infrastructure/sqlite/storage"
 )
 
 type DependencyContainer struct {
 	db                   *sql.DB
 	problemRepository    domainmodel.ProblemRepository
 	submissionRepository domainmodel.SubmissionRepository
+	sessionStorage       storage.SessionStorage
 	platformQueryService appquery.PlatformQueryService
 	submissionService    appservice.SubmissionService
 	gradingWorker        appservice.GradingWorker
@@ -44,6 +48,7 @@ func NewDependencyContainer(appID string) (*DependencyContainer, error) {
 
 	problemRepository := sqliterepo.NewProblemRepository(db)
 	submissionRepository := sqliterepo.NewSubmissionRepository(db)
+	sessionStorage := sqlitestorage.NewSessionStorage(db)
 	platformQueryService := sqlitequery.NewPlatformQueryService(db)
 	if err = seedProblems(problemRepository); err != nil {
 		_ = db.Close()
@@ -64,6 +69,7 @@ func NewDependencyContainer(appID string) (*DependencyContainer, error) {
 		db:                   db,
 		problemRepository:    problemRepository,
 		submissionRepository: submissionRepository,
+		sessionStorage:       sessionStorage,
 		platformQueryService: platformQueryService,
 		submissionService: appservice.NewSubmissionService(
 			submissionRepository,
@@ -115,6 +121,10 @@ func (c *DependencyContainer) SubmissionRepository() domainmodel.SubmissionRepos
 	return c.submissionRepository
 }
 
+func (c *DependencyContainer) SessionStorage() storage.SessionStorage {
+	return c.sessionStorage
+}
+
 func (c *DependencyContainer) PlatformQueryService() appquery.PlatformQueryService {
 	return c.platformQueryService
 }
@@ -153,62 +163,34 @@ func sampleProblems() ([]domainmodel.Problem, error) {
 		MemoryLimit: 256 * 1024 * 1024,
 	}
 
-	orders, err := domainmodel.NewProblem(
-		"task-orders",
-		"Фильтр заказов",
-		"Название,Цена\nМаргарита,500\nПепперони,400\n",
-		limits,
-	)
-	if err != nil {
-		return nil, err
-	}
-	if err = orders.AddTestCase("1 2\n", "3\n", true); err != nil {
-		return nil, err
-	}
-	if err = orders.AddTestCase("10 20\n", "30\n", false); err != nil {
-		return nil, err
-	}
-	if err = orders.AddTestCase("-5 3\n", "-2\n", false); err != nil {
-		return nil, err
+	themes := config.AllThemes()
+	problems := make([]domainmodel.Problem, 0, 6)
+
+	for _, meta := range themes {
+		for index, task := range meta.Tasks {
+			problem, err := domainmodel.NewProblem(
+				domainmodel.ProblemID(task.ID),
+				domainmodel.Title(task.Label),
+				fmt.Sprintf("statement://%s/%s", meta.Key, task.ID),
+				limits,
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			sampleInput := fmt.Sprintf("%d\n", index+1)
+			sampleOutput := fmt.Sprintf("%d\n", index+1)
+
+			if err = problem.AddTestCase(sampleInput, sampleOutput, true); err != nil {
+				return nil, err
+			}
+			if err = problem.AddTestCase(sampleInput, sampleOutput, false); err != nil {
+				return nil, err
+			}
+
+			problems = append(problems, problem)
+		}
 	}
 
-	demand, err := domainmodel.NewProblem(
-		"task-demand",
-		"Карта спроса",
-		"Город,Спрос\nМосква,120\nКазань,80\n",
-		limits,
-	)
-	if err != nil {
-		return nil, err
-	}
-	if err = demand.AddTestCase("2 5\n", "7\n", true); err != nil {
-		return nil, err
-	}
-	if err = demand.AddTestCase("100 250\n", "350\n", false); err != nil {
-		return nil, err
-	}
-	if err = demand.AddTestCase("0 0\n", "0\n", false); err != nil {
-		return nil, err
-	}
-
-	routes, err := domainmodel.NewProblem(
-		"task-routes",
-		"Генератор маршрутов",
-		"Маршрут,Длина\nA-B,14\nB-C,9\n",
-		limits,
-	)
-	if err != nil {
-		return nil, err
-	}
-	if err = routes.AddTestCase("10 32\n", "42\n", true); err != nil {
-		return nil, err
-	}
-	if err = routes.AddTestCase("1 999\n", "1000\n", false); err != nil {
-		return nil, err
-	}
-	if err = routes.AddTestCase("12345 67890\n", "80235\n", false); err != nil {
-		return nil, err
-	}
-
-	return []domainmodel.Problem{orders, demand, routes}, nil
+	return problems, nil
 }

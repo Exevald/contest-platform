@@ -44,6 +44,7 @@ func migrate(db *sql.DB) error {
 		`CREATE TABLE IF NOT EXISTS submissions (
 			id TEXT PRIMARY KEY,
 			problem_id TEXT NOT NULL,
+			participant_code TEXT NOT NULL DEFAULT '',
 			language TEXT NOT NULL,
 			source_code TEXT NOT NULL,
 			verdict TEXT NOT NULL,
@@ -51,12 +52,19 @@ func migrate(db *sql.DB) error {
 			compilation_output TEXT NOT NULL DEFAULT '',
 			created_at_unix INTEGER NOT NULL
 		)`,
+		`CREATE TABLE IF NOT EXISTS participant_session (
+			id TEXT PRIMARY KEY,
+			participant_code TEXT NOT NULL,
+			theme TEXT NOT NULL
+		)`,
+		`ALTER TABLE submissions ADD COLUMN participant_code TEXT NOT NULL DEFAULT ''`,
 		`ALTER TABLE submissions ADD COLUMN compilation_output TEXT NOT NULL DEFAULT ''`,
 	}
 
 	for _, statement := range statements {
 		if _, err := db.Exec(statement); err != nil {
-			if statement == `ALTER TABLE submissions ADD COLUMN compilation_output TEXT NOT NULL DEFAULT ''` {
+			if statement == `ALTER TABLE submissions ADD COLUMN compilation_output TEXT NOT NULL DEFAULT ''` ||
+				statement == `ALTER TABLE submissions ADD COLUMN participant_code TEXT NOT NULL DEFAULT ''` {
 				continue
 			}
 			return fmt.Errorf("migrate sqlite database: %w", err)

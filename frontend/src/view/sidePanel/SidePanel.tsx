@@ -19,6 +19,7 @@ const SidePanel = reatomComponent(({className}: ClassNameProps) => {
 		isSubmitDisabled,
 		languagesAtom,
 		titleAtom,
+		participantCodeAtom,
 		submitErrorAtom,
 		submitResultAtom,
 		isSubmittingAtom,
@@ -27,6 +28,10 @@ const SidePanel = reatomComponent(({className}: ClassNameProps) => {
 	return (
 		<div className={joinStyles(className, styles.container)}>
 			<div className={styles.title}>{titleAtom()}</div>
+			<div className={styles.participantCard}>
+				<div className={styles.participantLabel}>Код участника</div>
+				<div className={styles.participantValue}>{participantCodeAtom()}</div>
+			</div>
 
 			<FilePicker
 				id="file-input"

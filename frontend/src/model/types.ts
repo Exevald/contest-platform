@@ -2,6 +2,7 @@ type Task = {
 	id: string,
 	type: TabType,
 	label: string,
+	theme: ThemeKey,
 }
 
 type Language = {
@@ -9,8 +10,9 @@ type Language = {
 	extension: string,
 }
 
-type TabType = 'table'
+type TabType = 'statement' | 'table'
 type WorkspaceScreen = 'statement' | 'submission_history'
+type ThemeKey = 'pizza' | 'soc'
 type WorkspaceView = {
 	id: WorkspaceScreen,
 	label: string,
@@ -21,4 +23,5 @@ export type {
 	Language,
 	WorkspaceScreen,
 	WorkspaceView,
+	ThemeKey,
 }

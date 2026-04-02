@@ -17,7 +17,7 @@ func TestSubmissionService_ProcessNextResult(t *testing.T) {
 	_ = p.AddTestCase("3", "3", false)
 
 	t.Run("should stop on first fail with STOP_ON_FIRST_FAIL strategy", func(t *testing.T) {
-		s := model.NewSubmission("S1", p.ID(), "go", "code")
+		s := model.NewSubmission("S1", p.ID(), "participant-1", "go", "code")
 
 		res := model.TestResult{TestCaseID: 1, Verdict: model.VerdictWA}
 		continueTesting := svc.ProcessNextResult(s, p, res, model.StrategyStopOnFirstFail)
@@ -31,7 +31,7 @@ func TestSubmissionService_ProcessNextResult(t *testing.T) {
 	})
 
 	t.Run("should continue on fail with RUN_ALL_TESTS strategy", func(t *testing.T) {
-		s := model.NewSubmission("S2", p.ID(), "go", "code")
+		s := model.NewSubmission("S2", p.ID(), "participant-1", "go", "code")
 
 		res := model.TestResult{TestCaseID: 1, Verdict: model.VerdictWA}
 		continueTesting := svc.ProcessNextResult(s, p, res, model.StrategyRunAllTests)
@@ -42,7 +42,7 @@ func TestSubmissionService_ProcessNextResult(t *testing.T) {
 	})
 
 	t.Run("should stop when all tests finished", func(t *testing.T) {
-		s := model.NewSubmission("S3", p.ID(), "go", "code")
+		s := model.NewSubmission("S3", p.ID(), "participant-1", "go", "code")
 
 		svc.ProcessNextResult(s, p, model.TestResult{TestCaseID: 1, Verdict: model.VerdictOK}, model.StrategyRunAllTests)
 		svc.ProcessNextResult(s, p, model.TestResult{TestCaseID: 2, Verdict: model.VerdictOK}, model.StrategyRunAllTests)

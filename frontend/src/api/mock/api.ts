@@ -3,12 +3,16 @@ import type {
 	GetDataArgs,
 	PlatformApi, ResetTaskArgs, SendFileArgs, StartupData,
 } from '../types'
+import {getAllStartupTasks} from '../../config/theme'
 import {newTaskData, taskData} from './data'
+
+let participantCode = ''
+let selectedTheme = ''
 
 const api: PlatformApi = {
 	async getStartupData(): Promise<StartupData> {
 		return {
-			title: 'Rocket Pizza',
+			title: 'ContestPlatform',
 			languages: [
 				{
 					name: 'C++',
@@ -35,28 +39,13 @@ const api: PlatformApi = {
 					extension: 'py'
 				},
 			],
-			tasks: [
-				{
-					id: '1',
-					type: 'table',
-					label: 'Фильтр заказов',
-				},
-				{
-					id: '2',
-					type: 'table',
-					label: 'Карта спроса',
-				},
-
-				{
-					id: '3',
-					type: 'table',
-					label: 'Генератор маршрутов',
-				},
-			],
+			tasks: getAllStartupTasks(),
+			participantCode,
+			selectedTheme,
 			workspaceViews: [
 				{
 					id: 'statement',
-					label: 'Данные',
+					label: 'Задание',
 				},
 				{
 					id: 'submission_history',
@@ -90,6 +79,12 @@ const api: PlatformApi = {
 
 	getSubmissionHistory() {
 		return Promise.resolve([])
+	},
+
+	startSession(data) {
+		participantCode = data.participantCode
+		selectedTheme = data.theme
+		return this.getStartupData()
 	},
 }
 

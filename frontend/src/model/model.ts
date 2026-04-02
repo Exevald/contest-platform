@@ -17,6 +17,7 @@ function defPlatformModel(args: DefPlatformModel) {
 	return {
 		sidePanel: defSidePanelModel({
 			title: args.startupData.title,
+			participantCode: args.startupData.participantCode,
 			languages: args.startupData.languages,
 			api: args.api,
 			getSelectedTaskId: () => workspace.selectedTaskIdAtom(),

@@ -28,7 +28,7 @@ func TestNewProblem(t *testing.T) {
 }
 
 func TestSubmission_VerdictLogic(t *testing.T) {
-	sub := NewSubmission("SUB-1", "PROB-1", "go", "main...")
+	sub := NewSubmission("SUB-1", "PROB-1", "participant-1", "go", "main...")
 
 	t.Run("should start with pending", func(t *testing.T) {
 		if sub.Verdict() != VerdictPending {

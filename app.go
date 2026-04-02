@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"sort"
 	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -11,6 +10,8 @@ import (
 	appmodel "contest-platform/pkg/contestplatform/app/model"
 	appquery "contest-platform/pkg/contestplatform/app/query"
 	appservice "contest-platform/pkg/contestplatform/app/service"
+	"contest-platform/pkg/contestplatform/app/storage"
+	"contest-platform/pkg/contestplatform/config"
 	"contest-platform/pkg/contestplatform/infrastructure"
 )
 
@@ -23,16 +24,19 @@ type App struct {
 }
 
 type StartupData struct {
-	Title          string                `json:"title"`
-	Languages      []appmodel.UILanguage `json:"languages"`
-	Tasks          []Task                `json:"tasks"`
-	WorkspaceViews []WorkspaceView       `json:"workspaceViews"`
+	Title           string                `json:"title"`
+	Languages       []appmodel.UILanguage `json:"languages"`
+	Tasks           []Task                `json:"tasks"`
+	WorkspaceViews  []WorkspaceView       `json:"workspaceViews"`
+	ParticipantCode string                `json:"participantCode"`
+	SelectedTheme   string                `json:"selectedTheme"`
 }
 
 type Task struct {
 	ID    string `json:"id"`
 	Type  string `json:"type"`
 	Label string `json:"label"`
+	Theme string `json:"theme"`
 }
 
 type WorkspaceView struct {
@@ -52,6 +56,11 @@ type SubmissionStatus struct {
 	Verdict           string `json:"verdict"`
 	CreatedAt         string `json:"createdAt"`
 	CompilationOutput string `json:"compilationOutput"`
+}
+
+type StartSessionRequest struct {
+	ParticipantCode string `json:"participantCode"`
+	Theme           string `json:"theme"`
 }
 
 func NewApp() *App {
@@ -82,33 +91,64 @@ func (a *App) GetStartupData() (StartupData, error) {
 		return StartupData{}, a.initErr
 	}
 
-	problems, err := a.container.PlatformQueryService().ListProblems()
+	session, err := a.container.SessionStorage().Load()
 	if err != nil {
-		return StartupData{}, fmt.Errorf("load startup data: %w", err)
+		return StartupData{}, fmt.Errorf("load participant session: %w", err)
 	}
 
-	tasks := make([]Task, 0, len(problems))
-	for _, problem := range problems {
-		tasks = append(tasks, Task{
-			ID:    problem.ID,
-			Type:  "table",
-			Label: problem.Title,
-		})
+	themes := config.AllThemes()
+	tasks := make([]Task, 0, 6)
+	for _, theme := range themes {
+		for _, problem := range theme.Tasks {
+			tasks = append(tasks, Task{
+				ID:    problem.ID,
+				Type:  "statement",
+				Label: problem.Label,
+				Theme: string(theme.Key),
+			})
+		}
 	}
 
-	sort.Slice(tasks, func(i, j int) bool {
-		return tasks[i].Label < tasks[j].Label
-	})
+	var participantCode, selectedTheme string
+	if session != nil {
+		participantCode = session.ParticipantCode
+		selectedTheme = session.Theme
+	}
 
 	return StartupData{
-		Title:     "ContestPlatform",
-		Languages: appmodel.SupportedUILanguages(),
-		Tasks:     tasks,
+		Title:           "ContestPlatform",
+		Languages:       appmodel.SupportedUILanguages(),
+		Tasks:           tasks,
+		ParticipantCode: participantCode,
+		SelectedTheme:   selectedTheme,
 		WorkspaceViews: []WorkspaceView{
-			{ID: "statement", Label: "Данные"},
+			{ID: "statement", Label: "Задание"},
 			{ID: "submission_history", Label: "История посылок"},
 		},
 	}, nil
+}
+
+func (a *App) StartSession(request StartSessionRequest) (StartupData, error) {
+	if a.initErr != nil {
+		return StartupData{}, a.initErr
+	}
+
+	participantCode := request.ParticipantCode
+	if participantCode == "" {
+		return StartupData{}, fmt.Errorf("participant code is required")
+	}
+	if request.Theme != "pizza" && request.Theme != "soc" {
+		return StartupData{}, fmt.Errorf("invalid theme")
+	}
+
+	if err := a.container.SessionStorage().Save(storage.ParticipantSession{
+		ParticipantCode: participantCode,
+		Theme:           request.Theme,
+	}); err != nil {
+		return StartupData{}, err
+	}
+
+	return a.GetStartupData()
 }
 
 func (a *App) GetData(id string) (string, error) {
@@ -128,10 +168,21 @@ func (a *App) SendFile(id string, language string, text string) (SendFileRespons
 		return SendFileResponse{}, a.initErr
 	}
 
+	session, err := a.container.SessionStorage().Load()
+	if err != nil {
+		return SendFileResponse{}, err
+	}
+	if session == nil || session.ParticipantCode == "" {
+		return SendFileResponse{
+			Error: "participant session is not initialized",
+		}, nil
+	}
+
 	submissionID, err := a.container.SubmissionService().Submit(a.ctx, appservice.SubmitRequest{
-		ProblemID: id,
-		Language:  normalizeLanguage(language),
-		Source:    text,
+		ProblemID:       id,
+		ParticipantCode: session.ParticipantCode,
+		Language:        normalizeLanguage(language),
+		Source:          text,
 	})
 	if err != nil {
 		return SendFileResponse{
